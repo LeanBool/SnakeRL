@@ -1,0 +1,17 @@
+Deploy using Docker for ease of use:
+    -> need conda support, installed nvidia toolkit from https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+    -> use miniconda as base to keep it lightweight
+
+Project structure:
+    -> use gymnasium for custom snake environment
+        -> use pygame for rendering in human mode, potentially try using c++ bindings for the game at some point
+    -> use pytorch for agent and training
+    -> use tensorboard for training visualisation
+
+Environment:
+    -> try different obs spaces (starting from just head pos + target pos to positions of all snake tiles to movement dirs of each tile as a mxnx2 representation, ...)
+    -> add simple rewards, experiment with both sparse and other rewards
+
+...
+
+For now just gonna follow the gymnasium documentation on creating a custom environment, starting with adding the wrapper so it can be imported with ease.
