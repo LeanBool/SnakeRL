@@ -1,7 +1,3 @@
-Deploy using Docker for ease of use:
-    -> need conda support, installed nvidia toolkit from https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
-    -> use miniconda as base to keep it lightweight
-
 Project structure:
     -> use gymnasium for custom snake environment
         -> use pygame for rendering in human mode, potentially try using c++ bindings for the game at some point
