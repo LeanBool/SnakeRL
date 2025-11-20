@@ -1,8 +1,6 @@
 import torch
 import gymnasium
 import gym_environment
-import sys
-import os
 
 if __name__ == '__main__':
     print("CUDA Available:", torch.cuda.is_available())
