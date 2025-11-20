@@ -1,5 +1,5 @@
-import torch
-import gymnasium
+import torch # type: ignore
+import gymnasium # type: ignore
 import gym_environment
 
 if __name__ == '__main__':
