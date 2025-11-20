@@ -49,7 +49,7 @@ class SnakeEnv(gym.Env):
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
 
-        self._agent_location = (self.grid_size[0]//2, self.grid_size[1]//2) # spawn in center
+        self._agent_location = (max(0, self.grid_size[0]//2 - 1), max(0, self.grid_size[1]//2 - 1)) # spawn in center
 
         self._target_location = self._agent_location
         while np.array_equal(self._target_location, self._agent_location):
@@ -92,7 +92,7 @@ class SnakeEnv(gym.Env):
         if not terminated:
             v_tiles_next[self._agent_location[0], self._agent_location[1]] = direction
             self.v_tiles = v_tiles_next
-        print(self._agent_location, self._target_location)
+
         return observation, reward, terminated, False, info
 
     def _get_obs(self):
@@ -117,3 +117,20 @@ class SnakeEnv(gym.Env):
         if self.window is not None:
             pygame.display.quit()
             pygame.quit()
+
+    def _print_grid(self):
+        out = ""
+
+        for x in range(self.grid_size[0]):
+            for y in range(self.grid_size[1]):
+                if np.array_equal(self._agent_location, (x, y)):
+                    out += "o"
+                elif not np.array_equal(self.v_tiles[x, y], (0, 0)):
+                    out += "+"
+                elif np.array_equal(self._target_location, (x, y)):
+                    out += "x"
+                else:
+                    out += "#"
+            out += "\n"
+        
+        print(out)
