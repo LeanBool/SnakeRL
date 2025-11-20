@@ -10,10 +10,10 @@ Requires Docker.
 To render GUI correctly, set the uid and gid (obtained from the id $Username command) inside the dockerfile (change line containing export uid=... guid=...).
 
 TODO:
-- [x] Create Dockerized environment
+- [x] Create Docker environment
 - [x] Set up CUDA use inside container
 - [x] Set up rendering inside container
 - [x] Create gym environment
-- [ ] Handle illegal inputs (through negative reward or action masking)
-- [ ] Create pygame rendering
+- [x] Create pygame rendering
 - [ ] Agent, different network architectures, ...
+- [ ] Add tensorboard writers and service
