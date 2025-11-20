@@ -1,26 +1,9 @@
 import torch
+import gymnasium
+import gym_environment
 import sys
 import os
 
-def create_pygame_window():
-    sys.stdout = open(os.devnull,'w') # suppress pygame startup output
-    sys.stderr = open(os.devnull,'w')
-
-    import pygame
-
-    pygame.init()
-    window = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stdout__
-
-    run = True
-    while run:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-            elif event.type == pygame.VIDEORESIZE:
-                window = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
-
 if __name__ == '__main__':
     print("CUDA Available:", torch.cuda.is_available())
-    create_pygame_window()
+    env = gymnasium.make('gym_environment/Snake-v0')
