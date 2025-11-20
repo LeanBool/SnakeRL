@@ -13,6 +13,7 @@ TODO:
 - [x] Create Dockerized environment
 - [x] Set up CUDA use inside container
 - [x] Set up rendering inside container
-- [ ] Create gym environment
+- [x] Create gym environment
+- [ ] Handle illegal inputs (through negative reward or action masking)
 - [ ] Create pygame rendering
 - [ ] Agent, different network architectures, ...
