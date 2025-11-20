@@ -2,10 +2,5 @@
 
 IMAGE_NAME="snake-rl-container"
 
-# if [ "$(docker images -q ${IMAGE_NAME}:latest)" ]; then
-#   docker run -it --gpus all ${IMAGE_NAME}  
-# else
-#   docker build --network host -t ${IMAGE_NAME} . && docker run -it --gpus all ${IMAGE_NAME}
-# fi
-
-docker build --network host -t ${IMAGE_NAME} . && docker run -it --gpus all ${IMAGE_NAME}
+docker build --network host -t ${IMAGE_NAME} . 
+docker run -it --volume /tmp/.X11-unix:/tmp/.X11-unix --gpus all --env DISPLAY=$DISPLAY ${IMAGE_NAME}
