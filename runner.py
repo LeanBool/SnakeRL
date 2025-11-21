@@ -9,7 +9,7 @@ import numpy as np # type: ignore
 import cv2 # type: ignore
 
 if __name__ == '__main__':
-    model_type = "TRPO"
+    model_type = "RPPO"
     render_fps = 4
     grid_size = (8, 6)
     window_size = (800, 600)

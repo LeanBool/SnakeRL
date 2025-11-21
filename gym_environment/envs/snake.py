@@ -42,14 +42,18 @@ class SnakeEnv(gym.Env):
             {
                 "agent": spaces.MultiDiscrete([self.grid_size[0], self.grid_size[1]], dtype=int),
                 "target": spaces.MultiDiscrete([self.grid_size[0], self.grid_size[1]], dtype=int),
-                "grid": spaces.Box(-1, 1, (*self.grid_size, 2), dtype=int)
+                "left_distance": spaces.Discrete(self.grid_size[0], dtype=int),
+                "right_distance": spaces.Discrete(self.grid_size[0], dtype=int),
+                "up_distance": spaces.Discrete(self.grid_size[1], dtype=int),
+                "down_distance": spaces.Discrete(self.grid_size[1], dtype=int),                
+                #"grid": spaces.Box(-1, 1, (*self.grid_size, 2), dtype=int)
             }
         )        
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
 
-        self._agent_location = np.array((max(0, self.grid_size[0]//2 - 1), max(0, self.grid_size[1]//2 - 1))) # spawn in center
+        self._agent_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
 
         self._target_location = self._agent_location
         while np.array_equal(self._target_location, self._agent_location):
@@ -121,7 +125,49 @@ class SnakeEnv(gym.Env):
             pygame.quit()
 
     def _get_obs(self):
-        return {"agent": self._agent_location, "target": self._target_location, "grid": self.v_tiles}
+        up_distance = self._agent_location[1]
+        down_distance = self.grid_size[1] - self._agent_location[1] - 1
+        left_distance = self._agent_location[0]
+        right_distance = self.grid_size[0] - self._agent_location[0] - 1
+
+        if up_distance > 1 and self._agent_location[0] < self.grid_size[0]:
+            for y in range(1, up_distance):
+                if not np.array_equal(self.v_tiles[self._agent_location[0], self._agent_location[1] - y], (0, 0)):
+                    up_distance = self._agent_location[1] - y
+                    break
+        
+        if down_distance > 1 and self._agent_location[0] < self.grid_size[0]:
+            for y in range(1, down_distance):
+                if not np.array_equal(self.v_tiles[self._agent_location[0], self._agent_location[1] + y], (0, 0)):
+                    down_distance = self._agent_location[1] + y
+                    break
+
+        if left_distance > 1 and self._agent_location[1] < self.grid_size[1]:
+            for x in range(1, left_distance):
+                if not np.array_equal(self.v_tiles[self._agent_location[0] - x, self._agent_location[1]], (0, 0)):
+                    left_distance = self._agent_location[0] - x
+                    break
+    
+        if right_distance > 1 and self._agent_location[1] < self.grid_size[1]:
+            for x in range(1, right_distance):
+                if not np.array_equal(self.v_tiles[self._agent_location[0] + x, self._agent_location[1]], (0, 0)):
+                    right_distance = self._agent_location[0] + x
+                    break
+
+        down_distance = down_distance if down_distance >= 0 else 0
+        up_distance = up_distance if up_distance >= 0 else 0
+        left_distance = down_distance if left_distance >= 0 else 0
+        right_distance = right_distance if right_distance >= 0 else 0
+
+        return {
+            "agent": self._agent_location, 
+            "target": self._target_location,
+            "left_distance": left_distance,
+            "right_distance": right_distance,
+            "up_distance": up_distance,
+            "down_distance": down_distance,
+            #"grid": self.v_tiles
+            }
 
     def _get_info(self):
         return {
