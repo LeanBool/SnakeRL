@@ -8,9 +8,9 @@ from stable_baselines3.common.evaluation import evaluate_policy # type: ignore
 import cv2 # type: ignore
 
 if __name__ == '__main__':
-    render_fps = 2
+    render_fps = 4
     testing_episode_count = 100
-    training_timesteps = 50000
+    training_timesteps = 500000
 
     env = gymnasium.make('gym_environment/Snake-v0', render_mode="rgb_array")
     model = PPO('MultiInputPolicy', env, verbose=1)

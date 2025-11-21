@@ -41,7 +41,8 @@ class SnakeEnv(gym.Env):
         self.observation_space = spaces.Dict(
             {
                 "agent": spaces.MultiDiscrete([self.grid_size[0], self.grid_size[1]], dtype=int),
-                "target": spaces.MultiDiscrete([self.grid_size[0], self.grid_size[1]], dtype=int)
+                "target": spaces.MultiDiscrete([self.grid_size[0], self.grid_size[1]], dtype=int),
+                "grid": spaces.Box(-1, 1, (*self.grid_size, 2), dtype=int)
             }
         )        
 
@@ -122,7 +123,7 @@ class SnakeEnv(gym.Env):
             pygame.quit()
 
     def _get_obs(self):
-        return {"agent": self._agent_location, "target": self._target_location}
+        return {"agent": self._agent_location, "target": self._target_location, "grid": self.v_tiles}
 
     def _get_info(self):
         return {
