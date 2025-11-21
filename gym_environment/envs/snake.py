@@ -17,7 +17,7 @@ class Actions(Enum):
     DOWN = 3
 
 class SnakeEnv(gym.Env):
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 3}
+    metadata = {"render_modes": ["rgb_array"], "render_fps": 4}
     _action_to_direction = {
             Actions.RIGHT: np.array([1, 0]),
             Actions.UP: np.array([0, 1]),
@@ -29,12 +29,13 @@ class SnakeEnv(gym.Env):
         self.window = None
         self.clock = None
 
-        self.grid_size = (12, 8) if not grid_size else grid_size
+        self.grid_size = (6, 4) if not grid_size else grid_size
         self.render_mode = render_mode
         self.window_size = (800, 600) if not window_size else window_size
 
         self._agent_location = np.array([-1, -1], dtype=int)
         self._target_location = np.array([-1, -1], dtype=int)
+        self._last_direction = self._action_to_direction[Actions.UP]
 
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Dict(
@@ -59,13 +60,10 @@ class SnakeEnv(gym.Env):
         observation = self._get_obs()
         info = self._get_info()
 
-        if self.render_mode == "human":
-            self._render_frame()
-
         return observation, info
 
     def step(self, action):
-        reward = 1
+        reward = 0
         terminated = False
 
         direction = self._action_to_direction[Actions(action)]
@@ -77,15 +75,24 @@ class SnakeEnv(gym.Env):
                     if np.array_equal(self.v_tiles[x, y], (0, 0)) or np.array_equal((x, y), self._agent_location):
                         continue
                     tile_dir = self.v_tiles[x, y]
-                    v_tiles_next[x + tile_dir[0], y + tile_dir[1]] = tile_dir
+                    try:
+                        v_tiles_next[x + tile_dir[0], y + tile_dir[1]] = tile_dir
+                    except:
+                        continue
         else:
-            terminated = not np.array_equal(v_tiles_next[self._agent_location[0], self._agent_location[1]], (0, 0))
-            if not terminated:
-                v_tiles_next[self._agent_location[0], self._agent_location[1]] = direction
-                reward = 100
+            v_tiles_next[self._agent_location[0], self._agent_location[1]] = direction
+            
+            while np.array_equal(self._target_location, self._agent_location):
+                self._target_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
+
+            reward = 100
 
         self._agent_location += direction
-        terminated = terminated or np.any(self._agent_location < 0) or self._agent_location[0] >= self.grid_size[0] or self._agent_location[1] >= self.grid_size[1]
+        terminated = terminated or \
+            np.any(self._agent_location < 0) or \
+            self._agent_location[0] >= self.grid_size[0] or self._agent_location[1] >= self.grid_size[1] or \
+            not np.array_equal(self.v_tiles[self._agent_location[0], self._agent_location[1]], (0, 0)) or \
+            np.array_equal(self._last_direction, -direction)
         reward = reward if not terminated else 0
         observation = self._get_obs()
         info = self._get_info()
@@ -93,12 +100,10 @@ class SnakeEnv(gym.Env):
         if not terminated:
             v_tiles_next[self._agent_location[0], self._agent_location[1]] = direction
             self.v_tiles = v_tiles_next
+            self._last_direction = direction
         else:
             v_tiles_next[self._agent_location[0] - direction[0], self._agent_location[1] - direction[1]] = np.array([0, 0])
             self.v_tiles = v_tiles_next
-
-        if self.render_mode == "human":
-            self._render_frame()
 
         return observation, reward, terminated, False, info
     
@@ -119,15 +124,7 @@ class SnakeEnv(gym.Env):
             "distance": np.linalg.norm(self._agent_location - self._target_location, ord=1) # manhattan distance
         }
     
-    def _render_frame(self):
-        if not self.window and self.render_mode == "human":
-            pygame.init()
-            pygame.display.init()
-            self.window = pygame.display.set_mode(self.window_size)
-
-        if not self.clock and self.render_mode == "human":
-            self.clock = pygame.time.Clock()
-        
+    def _render_frame(self):        
         canvas = pygame.Surface(self.window_size)
         canvas.fill((255, 255, 255))
 
@@ -161,15 +158,9 @@ class SnakeEnv(gym.Env):
                         )
                     )
 
-        if self.render_mode == "human":
-            self.window.blit(canvas, canvas.get_rect())
-            pygame.event.pump()
-            pygame.display.update()
-            self.clock.tick(self.metadata["render_fps"])
-        else:  # rgb_array
-            return np.transpose(
-                np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
-            )
+        return np.transpose(
+            np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
+        )
             
     def _print_grid(self):
         out = ""

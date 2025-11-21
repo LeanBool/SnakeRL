@@ -4,3 +4,4 @@ torchvision
 gymnasium
 stable-baselines3
 tensorboard
+opencv-python

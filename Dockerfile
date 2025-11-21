@@ -10,6 +10,7 @@ RUN apt-get update
 RUN apt-get install -y --no-install-recommends sudo \  
     build-essential \  
     git \  
+    ffmpeg libsm6 libxext6 \
     -qqy x11-apps \
     && rm -rf /var/lib/apt/lists/*
 
