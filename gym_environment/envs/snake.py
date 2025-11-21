@@ -64,7 +64,7 @@ class SnakeEnv(gym.Env):
         return observation, info
 
     def step(self, action):
-        reward = -1
+        reward = -0.1
         terminated = False
 
         direction = self._action_to_direction[Actions(action)]
@@ -77,7 +77,7 @@ class SnakeEnv(gym.Env):
       
         if np.array_equal(self._agent_location + direction, self._target_location):
             v_tiles_next = self.v_tiles
-            while np.array_equal(self._target_location, self._agent_location + direction):
+            while np.linalg.norm(self._target_location - (self._agent_location + direction)) < 2:
                 self._target_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
             reward = 100
 
