@@ -5,3 +5,4 @@ gymnasium
 stable-baselines3
 tensorboard
 opencv-python
+sb3-contrib

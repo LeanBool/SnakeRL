@@ -64,7 +64,7 @@ class SnakeEnv(gym.Env):
         return observation, info
 
     def step(self, action):
-        reward = 0
+        reward = -1
         terminated = False
 
         direction = self._action_to_direction[Actions(action)]
@@ -94,12 +94,12 @@ class SnakeEnv(gym.Env):
                     break
 
         self._agent_location += direction
-        terminated = terminated or \
-            np.any(self._agent_location < 0) or \
-            self._agent_location[0] >= self.grid_size[0] or self._agent_location[1] >= self.grid_size[1] or \
-            not np.array_equal(self.v_tiles[self._agent_location[0], self._agent_location[1]], (0, 0)) \
-            # or np.array_equal(self._last_direction, -direction)
-        reward = reward if not terminated else 0
+        terminated = terminated \
+            or np.any(self._agent_location < 0) \
+            or self._agent_location[0] >= self.grid_size[0] or self._agent_location[1] >= self.grid_size[1] \
+            or not np.array_equal(self.v_tiles[self._agent_location[0], self._agent_location[1]], (0, 0)) 
+        
+        reward = reward if not terminated else -100
         observation = self._get_obs()
         info = self._get_info()
 
