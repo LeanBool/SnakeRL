@@ -79,7 +79,6 @@ class SnakeEnv(gym.Env):
             v_tiles_next = self.v_tiles
             while np.array_equal(self._target_location, self._agent_location + direction):
                 self._target_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
-
             reward = 100
 
         for x in range(self.v_tiles.shape[0]):
@@ -87,22 +86,18 @@ class SnakeEnv(gym.Env):
                 if np.array_equal(self.v_tiles[x, y], (0, 0)):
                     continue
                 tile_dir = self.v_tiles[x, y]
-                try:
-                    v_tiles_next[x + tile_dir[0], y + tile_dir[1]] = self.v_tiles[x + tile_dir[0], y + tile_dir[1]]
-                except:
+                next_tile = np.array([x + tile_dir[0], y + tile_dir[1]])
+                if np.any(next_tile < 0) or np.any(next_tile >= self.grid_size):
                     terminated = True
                     break
+                else:
+                    v_tiles_next[next_tile[0], next_tile[1]] = self.v_tiles[next_tile[0], next_tile[1]]
 
         self._agent_location += direction
         terminated = terminated \
-            or np.any(self._agent_location < 0) \
-            or self._agent_location[0] >= self.grid_size[0] or self._agent_location[1] >= self.grid_size[1] \
+            or np.any(self._agent_location < 0) or np.any(self._agent_location >= self.grid_size) \
             or not np.array_equal(self.v_tiles[self._agent_location[0], self._agent_location[1]], (0, 0)) 
         
-        reward = reward if not terminated else -100
-        observation = self._get_obs()
-        info = self._get_info()
-
         if not terminated:
             v_tiles_next[self._agent_location[0], self._agent_location[1]] = direction
             self.v_tiles = v_tiles_next
@@ -111,6 +106,9 @@ class SnakeEnv(gym.Env):
             self.v_tiles = v_tiles_next
 
         self._last_direction = direction
+        reward = reward if not terminated else -100
+        observation = self._get_obs()
+        info = self._get_info()
         return observation, reward, terminated, False, info
     
     def render(self):
