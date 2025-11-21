@@ -29,19 +29,19 @@ class SnakeEnv(gym.Env):
         self.window = None
         self.clock = None
 
-        self.grid_size = (6, 4) if not grid_size else grid_size
+        self.grid_size = (12, 6) if not grid_size else grid_size
         self.render_mode = render_mode
         self.window_size = (800, 600) if not window_size else window_size
 
         self._agent_location = np.array([-1, -1], dtype=int)
         self._target_location = np.array([-1, -1], dtype=int)
-        self._last_direction = self._action_to_direction[Actions.UP]
+        self._last_direction = self._action_to_direction[self.np_random.choice(Actions)]
 
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Dict(
             {
                 "agent": spaces.MultiDiscrete([self.grid_size[0], self.grid_size[1]], dtype=int),
-                "target": spaces.MultiDiscrete([self.grid_size[0], self.grid_size[1]], dtype=int),
+                "target": spaces.MultiDiscrete([self.grid_size[0], self.grid_size[1]], dtype=int)
             }
         )        
 
@@ -67,9 +67,20 @@ class SnakeEnv(gym.Env):
         terminated = False
 
         direction = self._action_to_direction[Actions(action)]
+
+        if np.array_equal(direction, -self._last_direction): # do nothing when illegal input pressed
+            direction = -direction
         v_tiles_next = np.zeros(self.v_tiles.shape, dtype=int)
         
-        self.v_tiles[self._agent_location[0], self._agent_location[1]] = direction
+        self.v_tiles[self._agent_location[0], self._agent_location[1]] = direction       
+      
+        if np.array_equal(self._agent_location + direction, self._target_location):
+            v_tiles_next = self.v_tiles
+            while np.array_equal(self._target_location, self._agent_location + direction):
+                self._target_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
+
+            reward = 100
+
         for x in range(self.v_tiles.shape[0]):
             for y in range(self.v_tiles.shape[1]):
                 if np.array_equal(self.v_tiles[x, y], (0, 0)):
@@ -81,21 +92,12 @@ class SnakeEnv(gym.Env):
                     terminated = True
                     break
 
-        if np.array_equal(self._agent_location + direction, self._target_location):
-            v_tiles_next[self._agent_location[0], self._agent_location[1]] = direction
-            v_tiles_next[self._agent_location[0] + direction[0], self._agent_location[1] + direction[1]] = direction
-            
-            while np.array_equal(self._target_location, self._agent_location):
-                self._target_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
-
-            reward = 100
-
         self._agent_location += direction
         terminated = terminated or \
             np.any(self._agent_location < 0) or \
             self._agent_location[0] >= self.grid_size[0] or self._agent_location[1] >= self.grid_size[1] or \
-            not np.array_equal(self.v_tiles[self._agent_location[0], self._agent_location[1]], (0, 0)) or \
-            np.array_equal(self._last_direction, -direction)
+            not np.array_equal(self.v_tiles[self._agent_location[0], self._agent_location[1]], (0, 0)) \
+            # or np.array_equal(self._last_direction, -direction)
         reward = reward if not terminated else 0
         observation = self._get_obs()
         info = self._get_info()

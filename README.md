@@ -7,13 +7,4 @@ Requires the NVIDIA Container Tookit to use CUDA capabilities
 
 Requires Docker.
 
-To render GUI correctly, set the uid and gid (obtained from the id $Username command) inside the dockerfile (change line containing export uid=... guid=...).
-
-TODO:
-- [x] Create Docker environment
-- [x] Set up CUDA use inside container
-- [x] Set up rendering inside container
-- [x] Create gym environment
-- [x] Create pygame rendering
-- [ ] Agent, different network architectures, ...
-- [ ] Add tensorboard writers and service
+To render GUI correctly, set the uid and gid (obtained from the id $Username command) inside the dockerfile (change line containing export uid=... gid=...).

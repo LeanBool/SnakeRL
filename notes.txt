@@ -13,4 +13,4 @@ Environment:
 Roadblocks and insights so far:
     - torch import didn't work when installing torch dependencies with conda install -> using pip instead (also use SHELL to ensure use of venv)
     - pip reqs weren't cached correctly due to incorrect order of copying files over (similar problem with python files not being synced)
-    
+    - heavy tailed distribution gates ppo towards strategies that rely heavily on random chance (i.e. circling and picking up apples by chance)

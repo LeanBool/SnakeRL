@@ -9,8 +9,8 @@ import cv2 # type: ignore
 
 if __name__ == '__main__':
     render_fps = 2
-    testing_episode_count = 10000
-    training_timesteps = 1000000
+    testing_episode_count = 100
+    training_timesteps = 50000
 
     env = gymnasium.make('gym_environment/Snake-v0', render_mode="rgb_array")
     model = PPO('MultiInputPolicy', env, verbose=1)
