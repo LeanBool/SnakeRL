@@ -68,19 +68,22 @@ class SnakeEnv(gym.Env):
 
         direction = self._action_to_direction[Actions(action)]
         v_tiles_next = np.zeros(self.v_tiles.shape, dtype=int)
+        
+        self.v_tiles[self._agent_location[0], self._agent_location[1]] = direction
+        for x in range(self.v_tiles.shape[0]):
+            for y in range(self.v_tiles.shape[1]):
+                if np.array_equal(self.v_tiles[x, y], (0, 0)):
+                    continue
+                tile_dir = self.v_tiles[x, y]
+                try:
+                    v_tiles_next[x + tile_dir[0], y + tile_dir[1]] = self.v_tiles[x + tile_dir[0], y + tile_dir[1]]
+                except:
+                    terminated = True
+                    break
 
-        if not np.array_equal(self._agent_location + direction, self._target_location):
-            for x in range(self.v_tiles.shape[0]):
-                for y in range(self.v_tiles.shape[1]):
-                    if np.array_equal(self.v_tiles[x, y], (0, 0)) or np.array_equal((x, y), self._agent_location):
-                        continue
-                    tile_dir = self.v_tiles[x, y]
-                    try:
-                        v_tiles_next[x + tile_dir[0], y + tile_dir[1]] = tile_dir
-                    except:
-                        continue
-        else:
+        if np.array_equal(self._agent_location + direction, self._target_location):
             v_tiles_next[self._agent_location[0], self._agent_location[1]] = direction
+            v_tiles_next[self._agent_location[0] + direction[0], self._agent_location[1] + direction[1]] = direction
             
             while np.array_equal(self._target_location, self._agent_location):
                 self._target_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
@@ -100,11 +103,11 @@ class SnakeEnv(gym.Env):
         if not terminated:
             v_tiles_next[self._agent_location[0], self._agent_location[1]] = direction
             self.v_tiles = v_tiles_next
-            self._last_direction = direction
         else:
             v_tiles_next[self._agent_location[0] - direction[0], self._agent_location[1] - direction[1]] = np.array([0, 0])
             self.v_tiles = v_tiles_next
 
+        self._last_direction = direction
         return observation, reward, terminated, False, info
     
     def render(self):

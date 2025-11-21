@@ -9,8 +9,8 @@ import cv2 # type: ignore
 
 if __name__ == '__main__':
     render_fps = 2
-    testing_episode_count = 5
-    training_timesteps = 100000
+    testing_episode_count = 10000
+    training_timesteps = 1000000
 
     env = gymnasium.make('gym_environment/Snake-v0', render_mode="rgb_array")
     model = PPO('MultiInputPolicy', env, verbose=1)
@@ -18,7 +18,10 @@ if __name__ == '__main__':
 
     model.learn(total_timesteps=training_timesteps)
 
-    # do testing episodes
+    # do testing episodes and record video
+    # fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    # out = cv2.VideoWriter('output.avi', fourcc, render_fps, (800, 600))
+
     cv2.startWindowThread()
     cv2.namedWindow("game")
 
@@ -32,7 +35,12 @@ if __name__ == '__main__':
             observation, reward_, terminated, _, info = env.step(action)
             steps += 1
             reward += reward_
-            img = env.render()
-            cv2.imshow("game", env.render())
-            cv2.waitKey(int(1000 * 1 / render_fps))
-        cv2.destroyAllWindows()
+
+            if not terminated:
+                img = env.render()
+                # out.write(img)
+                cv2.imshow("game", env.render())
+                cv2.waitKey(int(1000 * 1 / render_fps))
+
+    cv2.destroyAllWindows()
+    # out.release()
