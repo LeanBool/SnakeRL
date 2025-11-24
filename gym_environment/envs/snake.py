@@ -24,12 +24,6 @@ class SnakeEnv(gym.Env):
             Actions.LEFT: np.array([-1, 0]),
             Actions.DOWN: np.array([0, -1]),
     }
-    _direction_to_action = {
-            "[1 0]": Actions.RIGHT,
-            "[0 1]": Actions.UP,
-            "[-1  0]": Actions.LEFT,
-            "[ 0 -1]": Actions.DOWN,
-    }
 
     _collected_target = False
     _ticks_since_last_collect = 0
@@ -59,8 +53,9 @@ class SnakeEnv(gym.Env):
         self.action_space = spaces.Discrete(4)
 
         # each tile is either: empty tile, target, snake head, snake tile (4 dirs)
-        self._obs_vec = np.zeros(np.prod(self.grid_size))
         # self.observation_space = spaces.MultiDiscrete([*(7 * np.ones(np.prod(self.grid_size)))], dtype=int)
+
+        self._obs_vec = np.zeros(np.prod(self.grid_size))
         v = 2 * np.ones(np.prod(self.grid_size))
         self.observation_space = spaces.MultiDiscrete([*self.grid_size, *self.grid_size, *v], dtype=int)
         self._max_ticks_since_last_collect = np.prod(self.grid_size)
@@ -113,7 +108,9 @@ class SnakeEnv(gym.Env):
       
         if np.array_equal(self._agent_location + direction, self._target_location):
             v_tiles_next = self.v_tiles
-            while np.linalg.norm(self._target_location - (self._agent_location + direction)) < 2:
+            self._target_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
+            while np.array_equal(self._target_location, self._agent_location + direction) \
+                or not np.array_equal(self.v_tiles[self._target_location[0], self._target_location[1]], (0, 0)):
                 self._target_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
             self._collected_target = True
             self._ticks_since_last_collect = 0
@@ -174,17 +171,17 @@ class SnakeEnv(gym.Env):
         for x in range(self.v_tiles.shape[0]):
             for y in range(self.v_tiles.shape[1]):                
                 if str(self.v_tiles[x, y]) == "[0 0]":
-                    self._obs_vec[x*self.v_tiles[1] + y + 4] = 0
+                    self._obs_vec[x*self.grid_size[1] + y + 4] = 0
                 else:
-                    self._obs_vec[x*self.v_tiles[1] + y + 4] = 1
+                    self._obs_vec[x*self.grid_size[1] + y + 4] = 1
         
-        self._obs_vec[self._agent_location[0]*self.v_tiles[1] + self._agent_location[1]] = 0
-        self._obs_vec[self._target_location[0]*self.v_tiles[1] + self._target_location[1]] = 0
+        _clipped_agent = np.clip(self._agent_location, np.zeros(2), np.array(self.grid_size) - 1)
+        _clipped_target = np.clip(self._target_location, np.zeros(2), np.array(self.grid_size) - 1)
 
-        self._obs_vec[0] = self._agent_location[0]
-        self._obs_vec[1] = self._agent_location[1]
-        self._obs_vec[2] = self._target_location[0]
-        self._obs_vec[3] = self._target_location[1]
+        self._obs_vec[0] = _clipped_agent[0]
+        self._obs_vec[1] = _clipped_agent[1]
+        self._obs_vec[2] = _clipped_target[0]
+        self._obs_vec[3] = _clipped_target[1]
 
         return self._obs_vec
 
