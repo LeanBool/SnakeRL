@@ -1,4 +1,4 @@
-from gymnasium.envs.registration import register
+from gymnasium.envs.registration import register # type: ignore
 
 register(
     id="gym_environment/Snake-v0",

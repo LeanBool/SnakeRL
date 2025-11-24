@@ -7,4 +7,5 @@ Requires the NVIDIA Container Tookit to use CUDA capabilities
 
 Requires Docker.
 
-To render GUI correctly, set the uid and gid (obtained from the id $Username command) inside the dockerfile (change line containing export uid=... gid=...).
+To render GUI correctly, set the uid and gid (obtained from the id $Username command) inside the dockerfile (change line containing export uid=... gid=...)
+and run "sudo xhost +local:docker" to allow connecting to the local x-server.

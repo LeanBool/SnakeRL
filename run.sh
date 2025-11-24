@@ -2,5 +2,6 @@
 
 IMAGE_NAME="snake-rl-container"
 
+# use sudo xhost +local:docker
 docker build --network host -t ${IMAGE_NAME} . 
-docker run -it --volume /tmp/.X11-unix:/tmp/.X11-unix --gpus all --env DISPLAY=$DISPLAY ${IMAGE_NAME}
+docker run -it --privileged --volume /tmp/.X11-unix:/tmp/.X11-unix --gpus all --env DISPLAY=$DISPLAY ${IMAGE_NAME}

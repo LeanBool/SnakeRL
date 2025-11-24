@@ -24,31 +24,59 @@ class SnakeEnv(gym.Env):
             Actions.LEFT: np.array([-1, 0]),
             Actions.DOWN: np.array([0, -1]),
     }
+    _direction_to_action = {
+            "[1 0]": Actions.RIGHT,
+            "[0 1]": Actions.UP,
+            "[-1  0]": Actions.LEFT,
+            "[ 0 -1]": Actions.DOWN,
+    }
 
-    def __init__(self, render_mode=None, window_size=None, grid_size=None):
+    _collected_target = False
+    _ticks_since_last_collect = 0
+    _max_ticks_since_last_collect = 50
+    _last_min_dist = 0
+    _score = 0
+
+    _obs_vec = None
+
+    def __init__(self, window_size=None, grid_size=None):
         self.window = None
         self.clock = None
 
         self.grid_size = (12, 6) if not grid_size else grid_size
-        self.render_mode = render_mode
+        self.render_mode = "rgb_array"
         self.window_size = (800, 600) if not window_size else window_size
 
-        self._agent_location = np.array([-1, -1], dtype=int)
-        self._target_location = np.array([-1, -1], dtype=int)
+        ratio_window = self.window_size[0] / self.window_size[1]
+        ratio_grid = self.grid_size[0] / self.grid_size[1]
+        if not np.isclose(ratio_grid, ratio_window): # change window shape if the screen ratio isnt the same as grid ratio
+            self.window_size = (self.window_size[0] * ratio_grid / ratio_window, self.window_size[1])            
+
+        self._agent_location = np.array([0, 0], dtype=int)
+        self._target_location = np.array([0, 0], dtype=int)
         self._last_direction = self._action_to_direction[self.np_random.choice(Actions)]
 
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.Dict(
-            {
-                "agent": spaces.MultiDiscrete([self.grid_size[0], self.grid_size[1]], dtype=int),
-                "target": spaces.MultiDiscrete([self.grid_size[0], self.grid_size[1]], dtype=int),
-                "left_distance": spaces.Discrete(self.grid_size[0], dtype=int),
-                "right_distance": spaces.Discrete(self.grid_size[0], dtype=int),
-                "up_distance": spaces.Discrete(self.grid_size[1], dtype=int),
-                "down_distance": spaces.Discrete(self.grid_size[1], dtype=int),                
-                #"grid": spaces.Box(-1, 1, (*self.grid_size, 2), dtype=int)
-            }
-        )        
+
+        # each tile is either: empty tile, target, snake head, snake tile (4 dirs)
+        self._obs_vec = np.zeros(np.prod(self.grid_size))
+        # self.observation_space = spaces.MultiDiscrete([*(7 * np.ones(np.prod(self.grid_size)))], dtype=int)
+        v = 2 * np.ones(np.prod(self.grid_size))
+        self.observation_space = spaces.MultiDiscrete([*self.grid_size, *self.grid_size, *v], dtype=int)
+        self._max_ticks_since_last_collect = np.prod(self.grid_size)
+
+        # self.observation_space = spaces.Dict(
+        #     {
+        #         "agent": spaces.MultiDiscrete([self.grid_size[0], self.grid_size[1]], dtype=int),
+        #         "target": spaces.MultiDiscrete([self.grid_size[0], self.grid_size[1]], dtype=int),
+        #         # "left_distance": spaces.Discrete(self.grid_size[0], dtype=int),
+        #         # "right_distance": spaces.Discrete(self.grid_size[0], dtype=int),
+        #         # "up_distance": spaces.Discrete(self.grid_size[1], dtype=int),
+        #         # "down_distance": spaces.Discrete(self.grid_size[1], dtype=int),                
+        #         # "grid": spaces.Box(-1, 1, (*self.grid_size, 2), dtype=int),
+        #         # "grid": spaces.MultiDiscrete([3 for _ in range(int(2*np.prod(self.grid_size)))], dtype=int),
+        #     }
+        # )        
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -60,30 +88,39 @@ class SnakeEnv(gym.Env):
             self._target_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
 
         self.v_tiles = np.zeros((*self.grid_size, 2), dtype=int) # represent snake tiles as the direction they move in
-        self.v_tiles[self._agent_location[0], self._agent_location[1]] = self._action_to_direction[Actions.UP]
+        self.v_tiles[self._agent_location[0], self._agent_location[1]] = self._action_to_direction[self.np_random.choice(Actions)]
+
+        self._collected_target = False
+        self._ticks_since_last_collect = 0
+        self._max_ticks_since_last_collect = 50
+        self._last_min_dist = np.prod(self.grid_size)
+        self._score = 0        
 
         observation = self._get_obs()
         info = self._get_info()
-
+    
         return observation, info
 
     def step(self, action):
-        reward = -0.1
         terminated = False
 
         direction = self._action_to_direction[Actions(action)]
-
         if np.array_equal(direction, -self._last_direction): # do nothing when illegal input pressed
             direction = -direction
-        v_tiles_next = np.zeros(self.v_tiles.shape, dtype=int)
         
+        v_tiles_next = np.zeros(self.v_tiles.shape, dtype=int)
         self.v_tiles[self._agent_location[0], self._agent_location[1]] = direction       
       
         if np.array_equal(self._agent_location + direction, self._target_location):
             v_tiles_next = self.v_tiles
             while np.linalg.norm(self._target_location - (self._agent_location + direction)) < 2:
                 self._target_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
-            reward = 100
+            self._collected_target = True
+            self._ticks_since_last_collect = 0
+            self._score += 1
+        else:
+            self._collected_target = False
+            self._ticks_since_last_collect += 1
 
         for x in range(self.v_tiles.shape[0]):
             for y in range(self.v_tiles.shape[1]):
@@ -100,19 +137,26 @@ class SnakeEnv(gym.Env):
         self._agent_location += direction
         terminated = terminated \
             or np.any(self._agent_location < 0) or np.any(self._agent_location >= self.grid_size) \
-            or not np.array_equal(self.v_tiles[self._agent_location[0], self._agent_location[1]], (0, 0)) 
-        
+            or not np.array_equal(self.v_tiles[self._agent_location[0], self._agent_location[1]], (0, 0)) \
+            or self._ticks_since_last_collect > self._max_ticks_since_last_collect 
+                
         if not terminated:
             v_tiles_next[self._agent_location[0], self._agent_location[1]] = direction
             self.v_tiles = v_tiles_next
         else:
             v_tiles_next[self._agent_location[0] - direction[0], self._agent_location[1] - direction[1]] = np.array([0, 0])
             self.v_tiles = v_tiles_next
-
+    
         self._last_direction = direction
-        reward = reward if not terminated else -100
+        reward = self._get_reward(terminated)
         observation = self._get_obs()
         info = self._get_info()
+
+        if not self._collected_target:
+            self._last_min_dist = min(self._last_min_dist, np.linalg.norm(self._agent_location - self._target_location, ord=1))
+        else:
+            self._last_min_dist = np.prod(self.grid_size)
+
         return observation, reward, terminated, False, info
     
     def render(self):
@@ -125,53 +169,45 @@ class SnakeEnv(gym.Env):
             pygame.quit()
 
     def _get_obs(self):
-        up_distance = self._agent_location[1]
-        down_distance = self.grid_size[1] - self._agent_location[1] - 1
-        left_distance = self._agent_location[0]
-        right_distance = self.grid_size[0] - self._agent_location[0] - 1
+        self._obs_vec = np.zeros(4 + np.prod(self.grid_size), dtype=int)
 
-        if up_distance > 1 and self._agent_location[0] < self.grid_size[0]:
-            for y in range(1, up_distance):
-                if not np.array_equal(self.v_tiles[self._agent_location[0], self._agent_location[1] - y], (0, 0)):
-                    up_distance = self._agent_location[1] - y
-                    break
+        for x in range(self.v_tiles.shape[0]):
+            for y in range(self.v_tiles.shape[1]):                
+                if str(self.v_tiles[x, y]) == "[0 0]":
+                    self._obs_vec[x*self.v_tiles[1] + y + 4] = 0
+                else:
+                    self._obs_vec[x*self.v_tiles[1] + y + 4] = 1
         
-        if down_distance > 1 and self._agent_location[0] < self.grid_size[0]:
-            for y in range(1, down_distance):
-                if not np.array_equal(self.v_tiles[self._agent_location[0], self._agent_location[1] + y], (0, 0)):
-                    down_distance = self._agent_location[1] + y
-                    break
+        self._obs_vec[self._agent_location[0]*self.v_tiles[1] + self._agent_location[1]] = 0
+        self._obs_vec[self._target_location[0]*self.v_tiles[1] + self._target_location[1]] = 0
 
-        if left_distance > 1 and self._agent_location[1] < self.grid_size[1]:
-            for x in range(1, left_distance):
-                if not np.array_equal(self.v_tiles[self._agent_location[0] - x, self._agent_location[1]], (0, 0)):
-                    left_distance = self._agent_location[0] - x
-                    break
-    
-        if right_distance > 1 and self._agent_location[1] < self.grid_size[1]:
-            for x in range(1, right_distance):
-                if not np.array_equal(self.v_tiles[self._agent_location[0] + x, self._agent_location[1]], (0, 0)):
-                    right_distance = self._agent_location[0] + x
-                    break
+        self._obs_vec[0] = self._agent_location[0]
+        self._obs_vec[1] = self._agent_location[1]
+        self._obs_vec[2] = self._target_location[0]
+        self._obs_vec[3] = self._target_location[1]
 
-        down_distance = down_distance if down_distance >= 0 else 0
-        up_distance = up_distance if up_distance >= 0 else 0
-        left_distance = down_distance if left_distance >= 0 else 0
-        right_distance = right_distance if right_distance >= 0 else 0
+        return self._obs_vec
 
-        return {
-            "agent": self._agent_location, 
-            "target": self._target_location,
-            "left_distance": left_distance,
-            "right_distance": right_distance,
-            "up_distance": up_distance,
-            "down_distance": down_distance,
-            #"grid": self.v_tiles
-            }
+    def _get_reward(self, terminated = False, direction = None):
+        reward = 0
+
+        if terminated:
+            if self._ticks_since_last_collect > self._max_ticks_since_last_collect:
+                return -np.prod(self.grid_size) * 2
+            return -np.prod(self.grid_size) * 2
+        
+        if self._collected_target:
+            reward += np.prod(self.grid_size) * 2 * self._score                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+        
+        if self._score < np.prod(self.grid_size) // 2 and self._last_min_dist > np.linalg.norm(self._agent_location - self._target_location, ord=1):
+            reward += int(np.prod(self.grid_size) - self._score)
+
+        return reward
 
     def _get_info(self):
         return {
-            "distance": np.linalg.norm(self._agent_location - self._target_location, ord=1) # manhattan distance
+            "distance": np.linalg.norm(self._agent_location - self._target_location, ord=1), # manhattan distance
+            "score": self._score,            
         }
     
     def _render_frame(self):        
@@ -179,6 +215,16 @@ class SnakeEnv(gym.Env):
         canvas.fill((255, 255, 255))
 
         cell_size = min(self.window_size[0] // self.grid_size[0], self.window_size[1] // self.grid_size[1])
+
+        pygame.draw.rect(
+            canvas,
+            (0, 0, 0),
+            pygame.Rect(
+                (0, 0),
+                self.window_size,
+            ),
+            1
+        )
 
         pygame.draw.circle(
             canvas, 
