@@ -149,6 +149,10 @@ class SnakeEnv(gym.Env):
         observation = self._get_obs()
         info = self._get_info()
 
+        if self._score >= np.prod(self.grid_size) - 1:
+            reward += 10*np.prod(self.grid_size)
+            terminated = True
+
         if not self._collected_target:
             self._last_min_dist = min(self._last_min_dist, np.linalg.norm(self._agent_location - self._target_location, ord=1))
         else:

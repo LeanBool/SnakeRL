@@ -26,7 +26,6 @@ if __name__ == '__main__':
     n_envs = 8
     window_size = (window_size[0] // int(np.sqrt(n_envs)), window_size[1] // int(np.sqrt(n_envs)))
 
-    seeds = [np.random.randint(1, 1e7) + i for i in range(n_envs*10)]
     env = make_vec_env(
         env_id, 
         n_envs=n_envs,
