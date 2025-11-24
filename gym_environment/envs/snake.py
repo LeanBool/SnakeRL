@@ -193,7 +193,7 @@ class SnakeEnv(gym.Env):
 
         if terminated:
             if self._ticks_since_last_collect > self._max_ticks_since_last_collect:
-                return -np.prod(self.grid_size) * 2 * self._score * self._score
+                return -np.prod(self.grid_size) * 2 * self._score * 3
             return -np.prod(self.grid_size) * 2
         
         if self._collected_target:
