@@ -195,7 +195,7 @@ class SnakeEnv(gym.Env):
 
         if terminated:
             if self._ticks_since_last_collect > self._max_ticks_since_last_collect:
-                return -np.prod(self.grid_size) * 2 * self._score * 3
+                return -np.prod(self.grid_size) * 4 * self._score
             return -np.prod(self.grid_size) * 2
         
         if self._collected_target:
@@ -203,7 +203,9 @@ class SnakeEnv(gym.Env):
         
         # encourage moving quickly towards target especially early on
         if self._score < np.prod(self.grid_size) // 2 and self._last_min_dist > np.linalg.norm(self._agent_location - self._target_location, ord=1):
-            reward += int(np.prod(self.grid_size) - self._score)
+            reward += 1.5*(np.prod(self.grid_size) - self._score)
+        elif self._score < np.prod(self.grid_size) // 2 and self._last_min_dist < np.linalg.norm(self._agent_location - self._target_location, ord=1):
+            reward -= 0.1*(np.prod(self.grid_size) - self._score)
 
         return reward
 
