@@ -58,7 +58,7 @@ class SnakeEnv(gym.Env):
         self._obs_vec = np.zeros(np.prod(self.grid_size))
         v = 2 * np.ones(np.prod(self.grid_size))
         self.observation_space = spaces.MultiDiscrete([*self.grid_size, *self.grid_size, *v], dtype=int)
-        self._max_ticks_since_last_collect = np.prod(self.grid_size)
+        self._max_ticks_since_last_collect = np.prod(self.grid_size) * 2
 
         # self.observation_space = spaces.Dict(
         #     {
@@ -98,6 +98,8 @@ class SnakeEnv(gym.Env):
 
     def step(self, action):
         terminated = False
+
+        self._max_ticks_since_last_collect = int(np.prod(self.grid_size) + (self._score + 1))
 
         direction = self._action_to_direction[Actions(action)]
         if np.array_equal(direction, -self._last_direction): # do nothing when illegal input pressed
