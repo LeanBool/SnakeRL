@@ -19,10 +19,10 @@ if __name__ == '__main__':
     env_id = "gym_environment/Snake-v0"
     model_type = "PPO"
     render_fps = 4
-    grid_size = (6, 6)
+    grid_size = (5, 5)
     window_size = (800, 600)
     testing_episode_count = int(1e4)
-    training_timesteps = int(1e6)
+    training_timesteps = int(4e6)
     n_envs = 8  
     window_size = (window_size[0] // int(np.sqrt(n_envs)), window_size[1] // int(np.sqrt(n_envs)))
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     if model_type == "RPPO":
         model = RecurrentPPO('MlpLstmPolicy', env, verbose=1, device='cpu', ent_coef=0.01)     
     elif model_type == "PPO":
-        model = PPO('MlpPolicy', env, verbose=1, device='cpu', ent_coef=0.01)
+        model = PPO('MlpPolicy', env, verbose=1, device='cpu', ent_coef=0.001)
     elif model_type == "TRPO":
         model = TRPO('MlpPolicy', env, verbose=1, device='cpu')    
     model.learn(total_timesteps=training_timesteps)    

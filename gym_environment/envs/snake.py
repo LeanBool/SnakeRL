@@ -31,11 +31,15 @@ class SnakeEnv(gym.Env):
     _last_min_dist = 0
     _score = 0
 
+    _font = None
+
     _obs_vec = None
 
     def __init__(self, window_size=None, grid_size=None):
         self.window = None
         self.clock = None
+        pygame.font.init()
+        self._font = pygame.font.Font(pygame.font.get_default_font(), 36)
 
         self.grid_size = (12, 6) if not grid_size else grid_size
         self.render_mode = "rgb_array"
@@ -193,19 +197,25 @@ class SnakeEnv(gym.Env):
     def _get_reward(self, terminated = False, direction = None):
         reward = 0
 
-        if terminated:
-            if self._ticks_since_last_collect > self._max_ticks_since_last_collect:
-                return -np.prod(self.grid_size) * 4 * self._score
-            return -np.prod(self.grid_size) * 2
+        # if terminated:
+        #     if self._ticks_since_last_collect > self._max_ticks_since_last_collect:
+        #         return -np.prod(self.grid_size) * 4 * self._score
+        #     return -np.prod(self.grid_size) * 2
+        
+        # if self._collected_target:
+        #     reward += np.prod(self.grid_size) * 2 * self._score                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+        
+        # # encourage moving quickly towards target especially early on
+        # if self._last_min_dist > np.linalg.norm(self._agent_location - self._target_location, ord=1):
+        #     reward += 1.5*(np.prod(self.grid_size) - self._score)
+        # elif self._last_min_dist <= np.linalg.norm(self._agent_location - self._target_location, ord=1):
+        #     reward -= 0.5*(np.prod(self.grid_size) - self._score)
         
         if self._collected_target:
-            reward += np.prod(self.grid_size) * 2 * self._score                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+            reward += 100
         
-        # encourage moving quickly towards target especially early on
-        if self._last_min_dist > np.linalg.norm(self._agent_location - self._target_location, ord=1):
-            reward += 1.5*(np.prod(self.grid_size) - self._score)
-        elif self._last_min_dist < np.linalg.norm(self._agent_location - self._target_location, ord=1):
-            reward -= 0.1*(np.prod(self.grid_size) - self._score)
+        if terminated:
+            reward = 0
 
         return reward
 
@@ -238,15 +248,6 @@ class SnakeEnv(gym.Env):
             cell_size / 4
         )
 
-        pygame.draw.rect(
-            canvas,
-            (0, 0, 0),
-            pygame.Rect(
-                self._agent_location * cell_size,
-                (cell_size , cell_size),
-            )
-        )
-
         for i in range(self.v_tiles.shape[0]):
             for j in range(self.v_tiles.shape[1]):
                 if not np.array_equal(self.v_tiles[i, j], (0, 0)):
@@ -258,6 +259,22 @@ class SnakeEnv(gym.Env):
                             (cell_size , cell_size),
                         )
                     )
+        
+
+        pygame.draw.rect(
+            canvas,
+            (128, 128, 128),
+            pygame.Rect(
+                self._agent_location * cell_size,
+                (cell_size , cell_size),
+            )
+        )
+
+        text_width, _text_height = self._font.size(str(self._score))        
+        canvas.blit(
+            self._font.render(str(self._score), True, (0, 0, 0)),
+            (self.window_size[0] // 2 - text_width // 2, 0),
+        )
 
         return np.transpose(
             np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
