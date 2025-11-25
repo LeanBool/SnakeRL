@@ -8,21 +8,25 @@ import gym_environment
 from stable_baselines3 import PPO # type: ignore
 from stable_baselines3.common.env_util import make_vec_env # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv # type: ignore
-from sb3_contrib import RecurrentPPO, TRPO # type: ignore
+from sb3_contrib import RecurrentPPO, TRPO, MaskablePPO # type: ignore
+from sb3_contrib.common.maskable.policies import MaskableActorCriticPolicy # type: ignore
 
 import numpy as np # type: ignore
 import cv2 # type: ignore
 
 from time import time
 
+def mask_fn(env):
+    return env.get_action_mask()
+
 if __name__ == '__main__':
     env_id = "gym_environment/Snake-v0"
-    model_type = "PPO"
+    model_type = "" # default maskable ppo
     render_fps = 4
     grid_size = (5, 5)
     window_size = (800, 600)
     testing_episode_count = int(1e4)
-    training_timesteps = int(6e6)
+    training_timesteps = int(1e6)
     n_envs = 8
     window_size = (window_size[0] // int(np.sqrt(n_envs)), window_size[1] // int(np.sqrt(n_envs)))
 
@@ -42,6 +46,9 @@ if __name__ == '__main__':
         model = PPO('MlpPolicy', env, verbose=1, device='cpu', ent_coef=0.001)
     elif model_type == "TRPO":
         model = TRPO('MlpPolicy', env, verbose=1, device='cpu')    
+    else:
+        model = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1, device='cpu')
+
     model.learn(total_timesteps=training_timesteps)    
     
     cv2.startWindowThread()
@@ -71,6 +78,5 @@ if __name__ == '__main__':
                 img = env.render()
                 cv2.imshow("game", env.render())
                 cv2.waitKey(int(1000 * 1 / render_fps))
-
 
     cv2.destroyAllWindows()
