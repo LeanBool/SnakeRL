@@ -2,8 +2,9 @@
 
 ## A containerized snake reinforcement learning environment + agent for playing snake 
 
+<div style="text-align: center;">
 ![output](https://github.com/user-attachments/assets/0a734ed3-f441-4446-85d2-6e8f67085026)
-
+</div>
 
 When using Docker:
 Requires the NVIDIA Container Tookit to use CUDA capabilities
