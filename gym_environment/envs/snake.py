@@ -233,16 +233,6 @@ class SnakeEnv(gym.Env):
 
         cell_size = min(self.window_size[0] // self.grid_size[0], self.window_size[1] // self.grid_size[1])
 
-        pygame.draw.rect(
-            canvas,
-            (0, 0, 0),
-            pygame.Rect(
-                (0, 0),
-                self.window_size,
-            ),
-            1
-        )
-
         pygame.draw.circle(
             canvas, 
             (255, 0, 0), 
@@ -270,6 +260,16 @@ class SnakeEnv(gym.Env):
                 self._agent_location * cell_size,
                 (cell_size , cell_size),
             )
+        )
+
+        pygame.draw.rect(
+            canvas,
+            (128, 128, 128),
+            pygame.Rect(
+                (0, 0),
+                self.window_size,
+            ),
+            1
         )
 
         text_width, _text_height = self._font.size(str(self._score))        
