@@ -15,7 +15,7 @@ import cv2 # type: ignore
 if __name__ == '__main__':
     tb_log_path = "/home/docker_user/logs/"
 
-    os.system(f"tensorboard --host 0.0.0.0 --port 6006 --logdir {tb_log_path}/ &")
+    os.system(f"tensorboard --host 0.0.0.0 --port 6006 --logdir {tb_log_path}/ &") # a bit hacky
 
     env_id = "gym_environment/Snake-v0"
     model_type = "" # default maskable ppo
@@ -37,18 +37,18 @@ if __name__ == '__main__':
         vec_env_cls=SubprocVecEnv
     )
 
+    sys.stdout = open(os.devnull,'w') # disable output to disable tensorboard dependency warning
+    sys.stderr = open(os.devnull,'w')
     if model_type == "RPPO":
-        model = RecurrentPPO('MlpLstmPolicy', env, verbose=1, device='cpu', ent_coef=0.01)     
+        model = RecurrentPPO('MlpLstmPolicy', env, verbose=1, device='cpu', ent_coef=0.01, tensorboard_log=tb_log_path)     
     elif model_type == "PPO":
-        model = PPO('MlpPolicy', env, verbose=1, device='cpu', ent_coef=0.001)
+        model = PPO('MlpPolicy', env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
     elif model_type == "TRPO":
-        model = TRPO('MlpPolicy', env, verbose=1, device='cpu')    
+        model = TRPO('MlpPolicy', env, verbose=1, device='cpu', tensorboard_log=tb_log_path)    
     else:        
-        sys.stdout = open(os.devnull,'w')
-        sys.stderr = open(os.devnull,'w')
-        model = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1, device='cpu', tensorboard_log=tb_log_path)
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stdout__
+        model = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stdout__
 
     model.learn(total_timesteps=training_timesteps)    
     
