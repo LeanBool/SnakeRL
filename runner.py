@@ -20,7 +20,7 @@ if __name__ == '__main__':
     env_id = "gym_environment/Snake-v0"
     model_type = "" # default maskable ppo
     render_fps = 4
-    grid_size = (10, 9)
+    grid_size = (4, 4)
     window_size = (800, 600)
     testing_episode_count = int(1e4)
     training_timesteps = int(1e6)

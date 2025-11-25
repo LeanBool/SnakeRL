@@ -170,7 +170,7 @@ class SnakeEnv(gym.Env):
                     self.v_tiles[self._agent_location[0] + self._action_to_direction[action][0], 
                                  self._agent_location[1] + self._action_to_direction[action][1]], 
                                  (0, 0)) \
-                and not np.array_equal(self._direction, -self._action_to_direction[action]):
+                and not np.array_equal(self._last_direction, -self._action_to_direction[action]):
                 mask[i] = 1
 
         return mask
@@ -214,6 +214,7 @@ class SnakeEnv(gym.Env):
         
         if self._collected_target:
             reward += 100
+            reward += self._max_ticks_since_last_collect - self._ticks_since_last_collect
         
         if terminated:
             reward = 0
