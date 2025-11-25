@@ -3,7 +3,7 @@
 ## A containerized snake reinforcement learning environment + agent for playing snake 
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/0a734ed3-f441-4446-85d2-6e8f67085026" alt="Bot playing game">  
+  <img src="[https://github.com/user-attachments/assets/0a734ed3-f441-4446-85d2-6e8f67085026](https://github.com/user-attachments/assets/fbe204dc-78d1-4ea7-986d-35b0439829d0)" alt="Bot playing game">  
 </p>
 
 When using Docker:
