@@ -11,19 +11,31 @@ from stable_baselines3.common.vec_env import SubprocVecEnv # type: ignore
 from sb3_contrib import RecurrentPPO, TRPO, MaskablePPO # type: ignore
 from sb3_contrib.common.maskable.policies import MaskableActorCriticPolicy # type: ignore
 
+
+sys.stdout = open(os.devnull,'w') # suppress pygame import warning about deprecated dependency
+sys.stderr = open(os.devnull,'w')
+from tensorboard import program # type: ignore
+sys.stdout = sys.__stdout__
+sys.stderr = sys.__stdout__
+
 import numpy as np # type: ignore
 import cv2 # type: ignore
 
-from time import time
-
-def mask_fn(env):
-    return env.get_action_mask()
-
 if __name__ == '__main__':
+    sys.stdout = open(os.devnull,'w') # suppress pygame import warning about deprecated dependency
+    sys.stderr = open(os.devnull,'w')
+    tb_log_path = "/home/docker_user/logs/"
+    tb = program.TensorBoard()
+    tb.configure(argv=[None, '--logdir', tb_log_path + "PP0_1/"])
+    url = tb.launch()
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stdout__
+    print(f"Tensorflow listening on {url}")
+
     env_id = "gym_environment/Snake-v0"
     model_type = "" # default maskable ppo
     render_fps = 4
-    grid_size = (5, 5)
+    grid_size = (10, 9)
     window_size = (800, 600)
     testing_episode_count = int(1e4)
     training_timesteps = int(1e6)
@@ -46,8 +58,12 @@ if __name__ == '__main__':
         model = PPO('MlpPolicy', env, verbose=1, device='cpu', ent_coef=0.001)
     elif model_type == "TRPO":
         model = TRPO('MlpPolicy', env, verbose=1, device='cpu')    
-    else:
-        model = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1, device='cpu')
+    else:        
+        sys.stdout = open(os.devnull,'w')
+        sys.stderr = open(os.devnull,'w')
+        model = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1, device='cpu', tensorboard_log=tb_log_path)
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stdout__
 
     model.learn(total_timesteps=training_timesteps)    
     
