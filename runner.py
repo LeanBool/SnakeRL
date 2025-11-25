@@ -8,6 +8,7 @@ from stable_baselines3.common.env_util import make_vec_env # type: ignore
 from stable_baselines3.common.vec_env import SubprocVecEnv # type: ignore
 from sb3_contrib import RecurrentPPO, TRPO, MaskablePPO # type: ignore
 from sb3_contrib.common.maskable.policies import MaskableActorCriticPolicy # type: ignore
+from sb3_contrib.common.maskable.utils import get_action_masks # type: ignore
 
 import numpy as np # type: ignore
 import cv2 # type: ignore
@@ -23,7 +24,7 @@ if __name__ == '__main__':
     grid_size = (4, 4)
     window_size = (800, 600)
     testing_episode_count = int(1e4)
-    training_timesteps = int(1e6)
+    training_timesteps = int(1)
     n_envs = 8
     window_size = (window_size[0] // int(np.sqrt(n_envs)), window_size[1] // int(np.sqrt(n_envs)))
 
@@ -67,8 +68,12 @@ if __name__ == '__main__':
         while not np.all(terminated):
             if model_type == "RPPO":
                 actions, lstm_states = model.predict(observations, state=lstm_states, episode_start=episode_starts, deterministic=True)
-            else:
+            elif model_type == "PPO" or model_type == "TRPO":
                 actions, _states = model.predict(observations, deterministic=True)
+            else:
+                action_masks = get_action_masks(env)
+                actions, _states = model.predict(observations, action_masks=action_masks, deterministic=True)
+
 
             observations, rewards_, terminated_, infos = env.step(actions)
             steps += 1

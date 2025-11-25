@@ -214,7 +214,7 @@ class SnakeEnv(gym.Env):
         
         if self._collected_target:
             reward += 100
-            reward += self._max_ticks_since_last_collect - self._ticks_since_last_collect
+            reward += 5*(1 - self._ticks_since_last_collect/self._max_ticks_since_last_collect)
         
         if terminated:
             reward = 0
