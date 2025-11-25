@@ -15,3 +15,5 @@ To render GUI correctly, set the uid and gid (obtained from the id $Username com
 and run "sudo xhost +local:docker" to allow connecting to the local x-server.
 
 Untested on Windows.
+
+Tensorboard can be accessed on localhost:8080.

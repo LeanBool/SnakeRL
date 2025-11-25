@@ -1,8 +1,6 @@
 import sys
 import os
 
-import torch # type: ignore
-import gymnasium # type: ignore
 import gym_environment
 
 from stable_baselines3 import PPO # type: ignore
@@ -11,26 +9,13 @@ from stable_baselines3.common.vec_env import SubprocVecEnv # type: ignore
 from sb3_contrib import RecurrentPPO, TRPO, MaskablePPO # type: ignore
 from sb3_contrib.common.maskable.policies import MaskableActorCriticPolicy # type: ignore
 
-
-sys.stdout = open(os.devnull,'w') # suppress pygame import warning about deprecated dependency
-sys.stderr = open(os.devnull,'w')
-from tensorboard import program # type: ignore
-sys.stdout = sys.__stdout__
-sys.stderr = sys.__stdout__
-
 import numpy as np # type: ignore
 import cv2 # type: ignore
 
 if __name__ == '__main__':
-    sys.stdout = open(os.devnull,'w') # suppress pygame import warning about deprecated dependency
-    sys.stderr = open(os.devnull,'w')
     tb_log_path = "/home/docker_user/logs/"
-    tb = program.TensorBoard()
-    tb.configure(argv=[None, '--logdir', tb_log_path + "PP0_1/"])
-    url = tb.launch()
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stdout__
-    print(f"Tensorflow listening on {url}")
+
+    os.system(f"tensorboard --host 0.0.0.0 --port 6006 --logdir {tb_log_path}/ &")
 
     env_id = "gym_environment/Snake-v0"
     model_type = "" # default maskable ppo

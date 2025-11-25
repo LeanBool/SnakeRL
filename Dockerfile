@@ -33,7 +33,6 @@ COPY . .
 RUN conda clean -afy
 
 USER    docker_user 
-ENV     HOME=/home/docker_user 
-CMD     xeyes
+ENV     HOME=/home/docker_user
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "myenv", "python", "runner.py"]
