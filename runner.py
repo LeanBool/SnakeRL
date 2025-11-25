@@ -22,14 +22,14 @@ if __name__ == '__main__':
     grid_size = (5, 5)
     window_size = (800, 600)
     testing_episode_count = int(1e4)
-    training_timesteps = int(4e6)
-    n_envs = 8  
+    training_timesteps = int(6e6)
+    n_envs = 8
     window_size = (window_size[0] // int(np.sqrt(n_envs)), window_size[1] // int(np.sqrt(n_envs)))
 
     env = make_vec_env(
         env_id, 
         n_envs=n_envs,
-        env_kwargs = dict( 
+        env_kwargs = dict(
             grid_size=grid_size, 
             window_size=window_size,
         ),

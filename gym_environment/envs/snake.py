@@ -271,8 +271,9 @@ class SnakeEnv(gym.Env):
         )
 
         text_width, _text_height = self._font.size(str(self._score))        
+        text_color = (160, 70, 110)        
         canvas.blit(
-            self._font.render(str(self._score), True, (0, 0, 0)),
+            self._font.render(str(self._score), True, text_color),
             (self.window_size[0] // 2 - text_width // 2, 0),
         )
 
