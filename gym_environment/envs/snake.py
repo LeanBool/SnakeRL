@@ -101,7 +101,8 @@ class SnakeEnv(gym.Env):
         if np.array_equal(self._agent_location + self._direction, self._target_location):
             v_tiles_next = self.v_tiles
             self._target_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
-            while not np.array_equal(self.v_tiles[self._target_location[0], self._target_location[1]], (0, 0)):
+            while not np.array_equal(self.v_tiles[self._target_location[0], self._target_location[1]], (0, 0)) \
+                or np.array_equal(self._agent_location + self._direction, self._target_location):
                 self._target_location = self.np_random.integers(0, self.grid_size, size=2, dtype=int)
             self._collected_target = True
             self._ticks_since_last_collect = 0
