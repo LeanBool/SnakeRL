@@ -15,18 +15,26 @@ import cv2 # type: ignore
 
 if __name__ == '__main__':
     tb_log_path = "/home/docker_user/logs/"
+    
+    if not os.path.exists("/home/docker_user/model/"):
+        os.makedirs("/home/docker_user/model/")
 
     os.system(f"tensorboard --host 0.0.0.0 --port 6006 --logdir {tb_log_path} &") # a bit hacky
 
+    load_pretrained = True
+    timestep_start = 0
+
     env_id = "gym_environment/Snake-v0"
-    model_type = "" # default maskable ppo
+    model_type = "MPPO" # default maskable ppo
     render_fps = 4
     grid_size = (6, 5)
     window_size = (800, 600)
     testing_episode_count = int(1e4)
-    training_timesteps = int(4e6)
+    training_timesteps = int(1)
     n_envs = 8
     window_size = (window_size[0] // int(np.sqrt(n_envs)), window_size[1] // int(np.sqrt(n_envs)))
+
+    model_filename = f"./model/{str(grid_size[0])}x{str(grid_size[1])}_{str(training_timesteps + timestep_start)}_{model_type}.zip"
 
     env = make_vec_env(
         env_id, 
@@ -38,20 +46,35 @@ if __name__ == '__main__':
         vec_env_cls=SubprocVecEnv
     )
 
-    sys.stdout = open(os.devnull,'w') # disable output to disable tensorboard dependency warning
-    sys.stderr = open(os.devnull,'w')
     if model_type == "RPPO":
-        model = RecurrentPPO('MlpLstmPolicy', env, verbose=1, device='cpu', ent_coef=0.01, tensorboard_log=tb_log_path)     
+        if load_pretrained and os.path.exists(model_filename):
+            model = RecurrentPPO.load(model_filename, env=env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
+            timestep_start = int(model_filename.split("_")[-2])
+        else:
+            model = RecurrentPPO('MlpLstmPolicy', env, verbose=1, device='cpu', ent_coef=0.01, tensorboard_log=tb_log_path)     
     elif model_type == "PPO":
-        model = PPO('MlpPolicy', env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
+        if load_pretrained and os.path.exists(model_filename):
+            model = PPO.load(model_filename, env=env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
+            timestep_start = int(model_filename.split("_")[-2])
+        else:
+            model = PPO('MlpPolicy', env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
     elif model_type == "TRPO":
-        model = TRPO('MlpPolicy', env, verbose=1, device='cpu', tensorboard_log=tb_log_path)    
-    else:        
-        model = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stdout__
+        if load_pretrained and os.path.exists(model_filename):
+            model = TRPO.load(model_filename, env=env, verbose=1, device='cpu', tensorboard_log=tb_log_path)
+            timestep_start = int(model_filename.split("_")[-2])
+        else:
+            model = TRPO('MlpPolicy', env, verbose=1, device='cpu', tensorboard_log=tb_log_path)    
+    else:
+        if load_pretrained and os.path.isfile(model_filename):
+            model = MaskablePPO.load(model_filename, env=env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
+            timestep_start = int(model_filename.split("_")[-2])
+        else:
+            model = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
 
-    model.learn(total_timesteps=training_timesteps)    
+    model.learn(total_timesteps=training_timesteps)
+
+    model_filename = f"/home/docker_user/model/{str(grid_size[0])}x{str(grid_size[1])}_{str(training_timesteps + timestep_start)}_{model_type}.zip"
+    model.save(model_filename)
     
     cv2.startWindowThread()
     cv2.namedWindow("game")
