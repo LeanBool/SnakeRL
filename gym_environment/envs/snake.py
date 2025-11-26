@@ -103,7 +103,7 @@ class SnakeEnv(gym.Env):
             empty_tiles = np.where(self._obs_vec[4:] == 0)[0] # ! careful
             random_tile = self.np_random.choice(empty_tiles)
             self._target_location = np.array([random_tile // self.grid_size[1], random_tile % self.grid_size[1]])
-            while np.array_equal(self._agent_location + self._direction, self._target_location):
+            while not len(empty_tiles) <= 1 and np.array_equal(self._agent_location + self._direction, self._target_location):
                 random_tile = self.np_random.choice(empty_tiles)
                 self._target_location = np.array([random_tile // self.grid_size[1], random_tile % self.grid_size[1]])
             self._collected_target = True
@@ -143,7 +143,7 @@ class SnakeEnv(gym.Env):
         observation = self._get_obs()
         info = self._get_info()
 
-        if self._score >= np.prod(self.grid_size) - 2:
+        if self._score >= np.prod(self.grid_size) - 1:
             reward += 10*np.prod(self.grid_size)
             terminated = True
 
