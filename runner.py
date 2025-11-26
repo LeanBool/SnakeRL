@@ -38,7 +38,7 @@ if __name__ == '__main__':
         for file in os.listdir("./model/"):
             if file.startswith(f"{str(grid_size[0])}x{str(grid_size[1])}") and file.split("_")[-1] == f"{model_type}.zip":
                 ts_ = int(file.split("_")[-2])
-                if ts_ > timestep_start + training_timesteps:
+                if ts_ >= timestep_start:
                     timestep_start = ts_
     
     model_filename = f"./model/{str(grid_size[0])}x{str(grid_size[1])}_{str(timestep_start)}_{model_type}.zip"
@@ -55,24 +55,28 @@ if __name__ == '__main__':
 
     if model_type == "RPPO":
         if load_pretrained and os.path.exists(model_filename):
+            print(f"Loading model {model_filename}")
             model = RecurrentPPO.load(model_filename, env=env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
             timestep_start = int(model_filename.split("_")[-2])
         else:
             model = RecurrentPPO('MlpLstmPolicy', env, verbose=1, device='cpu', ent_coef=0.01, tensorboard_log=tb_log_path)     
     elif model_type == "PPO":
         if load_pretrained and os.path.exists(model_filename):
+            print(f"Loading model {model_filename}")
             model = PPO.load(model_filename, env=env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
             timestep_start = int(model_filename.split("_")[-2])
         else:
             model = PPO('MlpPolicy', env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
     elif model_type == "TRPO":
         if load_pretrained and os.path.exists(model_filename):
+            print(f"Loading model {model_filename}")
             model = TRPO.load(model_filename, env=env, verbose=1, device='cpu', tensorboard_log=tb_log_path)
             timestep_start = int(model_filename.split("_")[-2])
         else:
             model = TRPO('MlpPolicy', env, verbose=1, device='cpu', tensorboard_log=tb_log_path)    
     else:
         if load_pretrained and os.path.isfile(model_filename):
+            print(f"Loading model {model_filename}")
             model = MaskablePPO.load(model_filename, env=env, verbose=1, device='cpu', ent_coef=0.001, tensorboard_log=tb_log_path)
             timestep_start = int(model_filename.split("_")[-2])
         else:
