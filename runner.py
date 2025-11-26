@@ -27,10 +27,9 @@ if __name__ == '__main__':
     grid_size = (6, 5)
     window_size = (800, 600)
     testing_episode_count = int(1e4)
-    training_timesteps = int(1)
+    training_timesteps = int(4e6)
     n_envs = 8
     window_size = (window_size[0] // int(np.sqrt(n_envs)), window_size[1] // int(np.sqrt(n_envs)))
-
 
     if not os.path.exists("/home/docker_user/model/"):
         os.makedirs("/home/docker_user/model/")
