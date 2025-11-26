@@ -16,9 +16,6 @@ import cv2 # type: ignore
 if __name__ == '__main__':
     tb_log_path = "/home/docker_user/logs/"
     
-    if not os.path.exists("/home/docker_user/model/"):
-        os.makedirs("/home/docker_user/model/")
-
     os.system(f"tensorboard --host 0.0.0.0 --port 6006 --logdir {tb_log_path} &") # a bit hacky
 
     load_pretrained = True
@@ -30,11 +27,22 @@ if __name__ == '__main__':
     grid_size = (6, 5)
     window_size = (800, 600)
     testing_episode_count = int(1e4)
-    training_timesteps = int(1e6)
+    training_timesteps = int(1)
     n_envs = 8
     window_size = (window_size[0] // int(np.sqrt(n_envs)), window_size[1] // int(np.sqrt(n_envs)))
 
-    model_filename = f"./model/{str(grid_size[0])}x{str(grid_size[1])}_{str(training_timesteps + timestep_start)}_{model_type}.zip"
+
+    if not os.path.exists("/home/docker_user/model/"):
+        os.makedirs("/home/docker_user/model/")
+    
+    if os.path.exists("./model/"):
+        for file in os.listdir("./model/"):
+            if file.startswith(f"{str(grid_size[0])}x{str(grid_size[1])}") and file.split("_")[-1] == f"{model_type}.zip":
+                ts_ = int(file.split("_")[-2])
+                if ts_ > timestep_start + training_timesteps:
+                    timestep_start = ts_
+    
+    model_filename = f"./model/{str(grid_size[0])}x{str(grid_size[1])}_{str(timestep_start)}_{model_type}.zip"
 
     env = make_vec_env(
         env_id, 
