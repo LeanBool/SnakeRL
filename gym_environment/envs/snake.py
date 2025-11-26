@@ -48,7 +48,7 @@ class SnakeEnv(gym.Env):
         ratio_window = self.window_size[0] / self.window_size[1]
         ratio_grid = self.grid_size[0] / self.grid_size[1]
         if not np.isclose(ratio_grid, ratio_window): # change window shape if the screen ratio isnt the same as grid ratio
-            self.window_size = (self.window_size[0] * ratio_grid / ratio_window, self.window_size[1])            
+            self.window_size = (self.window_size[0] * ratio_grid / ratio_window, self.window_size[1])
 
         self._agent_location = np.array([0, 0], dtype=int)
         self._target_location = np.array([0, 0], dtype=int)
@@ -141,7 +141,7 @@ class SnakeEnv(gym.Env):
         observation = self._get_obs()
         info = self._get_info()
 
-        if self._score >= np.prod(self.grid_size) - 1:
+        if self._score >= np.prod(self.grid_size) - 2:
             reward += 10*np.prod(self.grid_size)
             terminated = True
 
@@ -246,7 +246,7 @@ class SnakeEnv(gym.Env):
                 if not np.array_equal(self.v_tiles[i, j], (0, 0)):
                     pygame.draw.rect(
                         canvas,
-                        (0, 0, 0),
+                        (64, 64, 64),
                         pygame.Rect(
                             np.array([i, j]) * cell_size,
                             (cell_size , cell_size),
@@ -274,7 +274,7 @@ class SnakeEnv(gym.Env):
         )
 
         text_width, _text_height = self._font.size(str(self._score))        
-        text_color = (160, 70, 110)        
+        text_color = (129, 52, 223)        
         canvas.blit(
             self._font.render(str(self._score), True, text_color),
             (self.window_size[0] // 2 - text_width // 2, 0),
