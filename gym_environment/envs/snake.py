@@ -17,6 +17,7 @@ class Actions(Enum):
     DOWN = 3
 
 class SnakeEnv(gym.Env):
+    OFFSET = 8 # number of observations preceeding the grid
     metadata = {"render_modes": ["rgb_array"], "render_fps": 4}
     _action_to_direction = {
             Actions.RIGHT: np.array([1, 0]),
@@ -59,9 +60,8 @@ class SnakeEnv(gym.Env):
 
         self._obs_vec = np.zeros(np.prod(self.grid_size))
         v = 2 * np.ones(np.prod(self.grid_size))
-        self.observation_space = spaces.MultiDiscrete([*self.grid_size, *self.grid_size, *v], dtype=int)
+        self.observation_space = spaces.MultiDiscrete([*self.grid_size, *self.grid_size, *self.grid_size, *self.grid_size, *v], dtype=int)
         self._max_ticks_since_last_collect = np.prod(self.grid_size) * 2
-
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -100,7 +100,7 @@ class SnakeEnv(gym.Env):
       
         if np.array_equal(self._agent_location + self._direction, self._target_location):
             v_tiles_next = self.v_tiles
-            empty_tiles = np.where(self._obs_vec[4:] == 0)[0] # ! careful
+            empty_tiles = np.where(self._obs_vec[self.OFFSET:] == 0)[0]
             random_tile = self.np_random.choice(empty_tiles)
             self._target_location = np.array([random_tile // self.grid_size[1], random_tile % self.grid_size[1]])
             while not len(empty_tiles) <= 1 and np.array_equal(self._agent_location + self._direction, self._target_location):
@@ -179,14 +179,15 @@ class SnakeEnv(gym.Env):
         return mask
 
     def _get_obs(self):
-        self._obs_vec = np.zeros(4 + np.prod(self.grid_size), dtype=int)
+        self._obs_vec = np.zeros(self.OFFSET + np.prod(self.grid_size), dtype=int)
 
+                        
         for x in range(self.v_tiles.shape[0]):
-            for y in range(self.v_tiles.shape[1]):                
+            for y in range(self.v_tiles.shape[1]):
                 if str(self.v_tiles[x, y]) == "[0 0]":
-                    self._obs_vec[x*self.grid_size[1] + y + 4] = 0
+                    self._obs_vec[x*self.grid_size[1] + y + self.OFFSET] = 0
                 else:
-                    self._obs_vec[x*self.grid_size[1] + y + 4] = 1
+                    self._obs_vec[x*self.grid_size[1] + y + self.OFFSET] = 1
         
         _clipped_agent = np.clip(self._agent_location, np.zeros(2), np.array(self.grid_size) - 1)
         _clipped_target = np.clip(self._target_location, np.zeros(2), np.array(self.grid_size) - 1)
@@ -196,31 +197,42 @@ class SnakeEnv(gym.Env):
         self._obs_vec[2] = _clipped_target[0]
         self._obs_vec[3] = _clipped_target[1]
 
+        up_distance = self._agent_location[1]
+        down_distance = self.grid_size[1] - self._agent_location[1] - 1
+        left_distance = self._agent_location[0]
+        right_distance = self.grid_size[0] - self._agent_location[0] - 1        
+
+        for x in range(1, self.grid_size[0] - 1):
+            if (self._agent_location[0] + x)*self.grid_size[1] + self._agent_location[1] < len(self._obs_vec):
+                if self._obs_vec[(self._agent_location[0] + x)*self.grid_size[1] + self._agent_location[1]] != 0:
+                    right_distance = min(right_distance, x)
+            if (self._agent_location[0] - x)*self.grid_size[1] + self._agent_location[1] >= 0:
+                if self._obs_vec[(self._agent_location[0] - x)*self.grid_size[1] + self._agent_location[1]] != 0:
+                    left_distance = min(left_distance, x)
+        for y in range(1, self.grid_size[1] - 1):
+            if self._agent_location[0]*self.grid_size[1] + self._agent_location[1] + y < len(self._obs_vec):
+                if self._obs_vec[self._agent_location[0]*self.grid_size[1] + self._agent_location[1] + y] != 0:
+                    down_distance = min(down_distance, y)
+            if self._agent_location[0]*self.grid_size[1] + self._agent_location[1] - y >= 0:
+                if self._obs_vec[self._agent_location[0]*self.grid_size[1] + self._agent_location[1] - y] != 0:
+                    up_distance = min(up_distance, y)
+        self._obs_vec[4] = left_distance
+        self._obs_vec[5] = up_distance
+        self._obs_vec[6] = right_distance
+        self._obs_vec[7] = down_distance
+
         return self._obs_vec
 
     def _get_reward(self, terminated = False, direction = None):
         reward = 0
 
-        # if terminated:
-        #     if self._ticks_since_last_collect > self._max_ticks_since_last_collect:
-        #         return -np.prod(self.grid_size) * 4 * self._score
-        #     return -np.prod(self.grid_size) * 2
-        
-        # if self._collected_target:
-        #     reward += np.prod(self.grid_size) * 2 * self._score                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-        
-        # # encourage moving quickly towards target especially early on
-        # if self._last_min_dist > np.linalg.norm(self._agent_location - self._target_location, ord=1):
-        #     reward += 1.5*(np.prod(self.grid_size) - self._score)
-        # elif self._last_min_dist <= np.linalg.norm(self._agent_location - self._target_location, ord=1):
-        #     reward -= 0.5*(np.prod(self.grid_size) - self._score)
+        if terminated:
+            if self._ticks_since_last_collect > self._max_ticks_since_last_collect:
+                return -self._score*self._score/np.prod(self.grid_size) * 5
+            return -self._score*self._score/np.prod(self.grid_size)
         
         if self._collected_target:
-            reward += 100
-            reward += 5*(1 - self._ticks_since_last_collect/self._max_ticks_since_last_collect)
-        
-        if terminated:
-            reward = 0
+            reward += self._score
 
         return reward
 

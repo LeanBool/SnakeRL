@@ -18,11 +18,11 @@ if __name__ == "__main__":
     env_id = "gym_environment/Snake-v0"
 
     # ===============Edit below=================
-    render_fps = 4
-    grid_size = (6, 5)
+    render_fps = 16
+    grid_size = (10, 9)
     window_size = (800, 600)
     testing_episode_count = int(1)
-    training_timesteps = int(1e6)
+    training_timesteps = int(0)
     n_envs = 8
 
     load_pretrained = True
