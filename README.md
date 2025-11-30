@@ -10,7 +10,7 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/LeanBool/SnakeRL/refs/heads/main/img/tensorboard.png" alt="Tensorboard chart of training 2 million steps on a 5x5 grid">  
   <br>
-  <em>Tensorboard chart of training 2 million steps on a 5x5 grid</em>
+  <em>Tensorboard chart of training 1 million steps on a 6x5 grid, finding the optimal policy</em>
 </p>
 
 ### How to use:
