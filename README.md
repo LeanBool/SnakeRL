@@ -3,11 +3,7 @@
 ## A containerized snake reinforcement learning environment + agent for playing snake 
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/LeanBool/SnakeRL/refs/heads/main/img/playing_game.gif" alt="Bot playing game on 6x5 grid">  
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/LeanBool/SnakeRL/refs/heads/main/img/tensorboard.png" alt="tensorboard chart after 4m steps on 6x5"> 
+  <img src="https://raw.githubusercontent.com/LeanBool/SnakeRL/refs/heads/main/img/playing_game.gif" alt="Bot playing game on 10x9 grid">  
 </p>
 
 When using Docker:
