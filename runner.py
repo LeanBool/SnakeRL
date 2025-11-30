@@ -19,10 +19,10 @@ if __name__ == "__main__":
 
     # ===============Edit below=================
     render_fps = 16
-    grid_size = (10, 9)
+    grid_size = (5, 5)
     window_size = (800, 600)
     testing_episode_count = int(1)
-    training_timesteps = int(0)
+    training_timesteps = int(2e6)
     n_envs = 8
 
     load_pretrained = True
