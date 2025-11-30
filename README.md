@@ -4,10 +4,12 @@
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/LeanBool/SnakeRL/refs/heads/main/img/playing_game.gif" alt="Bot playing game on 10x9 grid">  
+  <br>
   <em>Bot playing game on 10x9 grid</em>
 </p>
 <p align="center">
   <img src="https://raw.githubusercontent.com/LeanBool/SnakeRL/refs/heads/main/img/tensorboard.png" alt="Tensorboard chart of training 2 million steps on a 5x5 grid">  
+  <br>
   <em>Tensorboard chart of training 2 million steps on a 5x5 grid</em>
 </p>
 
