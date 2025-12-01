@@ -56,8 +56,8 @@ class CurriculumLearningCallback(BaseCallback):
 
             print(f"Finished stage {self._stage}.")
             file_name = f"/home/docker_user/model/\
-                {'x'.join(map(str, self._curriculum_transitions[self.stage][1]))}_\
-                {self._curriculum_transitions[stage][0]}_\
+                {'x'.join(map(str, self._curriculum_transitions[self._stage][1]))}_\
+                {self._curriculum_transitions[self._stage][0]}_\
                 {self._model_type}"
             self.model.save(file_name)
 
