@@ -55,7 +55,10 @@ class CurriculumLearningCallback(BaseCallback):
                 self.num_timesteps >= next_transition:
 
             print(f"Finished stage {self._stage}.")
-            file_name = f"/home/docker_user/model/{self._stage}"
+            file_name = f"/home/docker_user/model/\
+                {'x'.join(map(str, self._curriculum_transitions[self.stage][1]))}_\
+                {self._curriculum_transitions[stage][0]}_\
+                {self._model_type}"
             self.model.save(file_name)
 
             del self.model
@@ -83,10 +86,18 @@ def get_model_filename(grid_size, model_type="MPPO"):
 
 if __name__ == "__main__":
     _curriculum_transitions = [  # number of steps to next stage, (grid_dims)
-            (int(1e6), (4, 4)),
-            (int(2e6), (6, 5)),
-            (int(4e6), (8, 7)),
-            (int(10e6), (10, 9)),
+            (int(5e5), (4, 4)),
+            (int(5e5), (5, 4)),
+            (int(5e5), (5, 5)),
+            (int(5e5), (6, 5)),
+            (int(5e5), (6, 6)),
+            (int(5e5), (7, 6)),
+            (int(5e5), (7, 7)),
+            (int(5e5), (8, 7)),
+            (int(5e5), (8, 8)),
+            (int(5e5), (9, 8)),
+            (int(5e5), (9, 9)),
+            (int(5e5), (10, 9)),
         ]
 
     tb_log_path = "/home/docker_user/logs/"
@@ -195,8 +206,8 @@ if __name__ == "__main__":
                         curriculum_transitions=_curriculum_transitions,
                         )
                     )
-        for stage in range(1, 4):
-            file_name = f"/home/docker_user/model/{stage-1}"
+        for stage in range(1, len(_curriculum_transitions)):
+            file_name = f"/home/docker_user/model/{'x'.join(map(str, _curriculum_transitions[stage-1][1]))}_{_curriculum_transitions[stage-1][0]}"
             del model
             grid_size = _curriculum_transitions[stage][1]
             env = make_vec_env(

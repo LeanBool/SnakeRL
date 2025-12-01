@@ -237,7 +237,6 @@ class SnakeEnv(gym.Env):
         canvas.fill((0, 0, 0))
 
         cell_size = 4
-        # fill game area so generalisation is better as (0, 0, 0) means game over
         pygame.draw.rect(
             canvas,
             (255, 255, 255),
@@ -284,11 +283,11 @@ class SnakeEnv(gym.Env):
 
         if terminated:
             if self._ticks_since_last_collect > self._max_ticks_since_last_collect:
-                reward -= 3/np.prod(self.grid_size)*self._score
-            reward -= 1/np.prod(self.grid_size)*self._score
+                reward -= 5 
+            reward -= 1
             
         if self._collected_target:
-            reward += 1/np.prod(self.grid_size)*self._score
+            reward += 1
 
         return reward
 
