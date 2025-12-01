@@ -55,10 +55,7 @@ class CurriculumLearningCallback(BaseCallback):
                 self.num_timesteps >= next_transition:
 
             print(f"Finished stage {self._stage}.")
-            file_name = f"/home/docker_user/model/\
-                {'x'.join(map(str, self._curriculum_transitions[self._stage][1]))}_\
-                {self._curriculum_transitions[self._stage][0]}_\
-                {self._model_type}"
+            file_name = f"/home/docker_user/model/{'x'.join(map(str, self._curriculum_transitions[self._stage][1]))}_{self._curriculum_transitions[self._stage][0]}_{self._model_type}"
             self.model.save(file_name)
 
             del self.model
@@ -207,7 +204,7 @@ if __name__ == "__main__":
                         )
                     )
         for stage in range(1, len(_curriculum_transitions)):
-            file_name = f"/home/docker_user/model/{'x'.join(map(str, _curriculum_transitions[stage-1][1]))}_{_curriculum_transitions[stage-1][0]}"
+            file_name = f"/home/docker_user/model/{'x'.join(map(str, _curriculum_transitions[stage-1][1]))}_{_curriculum_transitions[stage-1][0]}_{model_type}"
             del model
             grid_size = _curriculum_transitions[stage][1]
             env = make_vec_env(
@@ -253,10 +250,7 @@ if __name__ == "__main__":
                         )
 
         if training_timesteps + timestep_start > 0:
-            model_filename = f"""/home/docker_user/model/\
-                {grid_size[0]}x{grid_size[1]}_\
-                {timestep_start + training_timesteps}_\
-                {model_type}"""
+            model_filename = f"/home/docker_user/model/{grid_size[0]}x{grid_size[1]}_{timestep_start + training_timesteps}_{model_type}"
             model.save(model_filename)
 
     if load_pretrained:
