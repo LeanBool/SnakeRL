@@ -96,10 +96,10 @@ def get_model_filename(grid_size, model_type="MPPO"):
 
 if __name__ == "__main__":
     _curriculum_transitions = [  # number of steps to next stage, (grid_dims)
-            (int(5e5), (5, 4)),
-            (int(5e5), (6, 5)),
-            (int(1e6), (7, 6)),
-            (int(1e6), (8, 7)),
+            (int(1e6), (5, 4)),
+            (int(1e6), (6, 5)),
+            (int(1.5e6), (7, 6)),
+            (int(1.5e6), (8, 7)),
             (int(2e6), (9, 8)),
             (int(2e6), (10, 9)),
         ]
