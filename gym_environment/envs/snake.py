@@ -5,8 +5,8 @@ import numpy as np  # type: ignore
 import gymnasium as gym  # type: ignore
 from gymnasium import spaces  # type: ignore
 
-sys.stdout = open(os.devnull,'w') # suppress pygame import warning about deprecated dependency
-sys.stderr = open(os.devnull,'w')
+sys.stdout = open(os.devnull, 'w')  # suppress pygame import warning about deprecated dependency
+sys.stderr = open(os.devnull, 'w')
 import pygame  # type: ignore
 sys.stdout = sys.__stdout__
 sys.stderr = sys.__stdout__
@@ -283,9 +283,9 @@ class SnakeEnv(gym.Env):
 
         if terminated:
             if self._ticks_since_last_collect > self._max_ticks_since_last_collect:
-                reward -= 5 
+                reward -= 5
             reward -= 1
-            
+
         if self._collected_target:
             reward += 1
 
