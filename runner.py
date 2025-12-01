@@ -115,11 +115,11 @@ if __name__ == "__main__":
     window_size = (800, 600)
     testing_episode_count = int(1)
     training_timesteps = max([i[0] for i in _curriculum_transitions])
-    n_envs = 8
+    n_envs = 16
 
     load_pretrained = False
     model_type = "MPPO"
-    ent_coef = 0.001  # sb default is 0
+    ent_coef = 0 # 0.001  # sb default is 0
     learning_rate = 0.0003
     n_steps = 2048
     batch_size = 64
@@ -233,7 +233,7 @@ if __name__ == "__main__":
                 device=device,
                 ent_coef=ent_coef,
                 tensorboard_log=tb_log_path,
-                learning_rate=learning_rate,
+                learning_rate=learning_rate*stage,
                 n_steps=n_steps,
                 batch_size=batch_size,
                 n_epochs=n_epochs,
@@ -247,7 +247,7 @@ if __name__ == "__main__":
                             device=device,
                             ent_coef=ent_coef,
                             tensorboard_log=tb_log_path,
-                            learning_rate=learning_rate,
+                            learning_rate=learning_rate*stage,
                             n_steps=n_steps,
                             batch_size=batch_size,
                             n_epochs=n_epochs,

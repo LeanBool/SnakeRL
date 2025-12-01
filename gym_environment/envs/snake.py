@@ -52,7 +52,7 @@ class SnakeEnv(gym.Env):
 
         self.grid_size = (12, 6) if not grid_size else grid_size
         self.render_mode = "rgb_array"
-        self.window_size = (84, 84)
+        self.window_size = (42, 42)
         self._render_window_size = render_window_size
 
         if not training_mode:
@@ -236,7 +236,7 @@ class SnakeEnv(gym.Env):
         canvas = pygame.Surface(self.window_size)
         canvas.fill((0, 0, 0))
 
-        cell_size = 4
+        cell_size = 3
         pygame.draw.rect(
             canvas,
             (255, 255, 255),
@@ -276,7 +276,9 @@ class SnakeEnv(gym.Env):
             )
         )
 
-        return pygame.surfarray.array3d(canvas)
+        return np.transpose(
+            np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
+        )
 
     def _get_reward(self, terminated=False, direction=None):
         reward = 0
@@ -287,7 +289,7 @@ class SnakeEnv(gym.Env):
             reward -= 1
 
         if self._collected_target:
-            reward += 1
+            reward += 1 - self._ticks_since_last_collect/self._max_ticks_since_last_collect
 
         return reward
 
