@@ -29,8 +29,8 @@ COPY requirements.txt ./requirements.txt
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-COPY . .
 RUN conda clean -afy
+COPY . .
 
 USER    docker_user 
 ENV     HOME=/home/docker_user

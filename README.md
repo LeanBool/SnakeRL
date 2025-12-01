@@ -18,7 +18,7 @@
 - Install the NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
 - Clone this repository
 - Edit runner.py to specify parameters like grid size, training steps, ...
-- Run ./run.sh
+- Run ./run.sh (might require elevated privileges)
 - If you have issues with the testing window not opening after training is done, check if the uid and gid in Dockerfile on line 17 match the xhost's respective ids.
 
 Note: Tensorboard can be accessed on localhost:8080
