@@ -63,10 +63,16 @@ class SnakeEnv(gym.Env):
                     int(self._render_window_size[0] * ratio_grid / ratio_window),
                     self._render_window_size[1])
 
+        # self.observation_space = spaces.Box(
+        #     low=0,
+        #     high=255,
+        #     shape=(self.window_size[0], self.window_size[1], 3),
+        #     dtype=np.uint8)
+        
         self.observation_space = spaces.Box(
             low=0,
-            high=255,
-            shape=(self.window_size[0], self.window_size[1], 3),
+            high=5,
+            shape=(90,),
             dtype=np.uint8)
 
         self._agent_location = np.array([0, 0], dtype=int)
@@ -205,15 +211,22 @@ class SnakeEnv(gym.Env):
     def action_masks(self):
         mask = np.zeros(4, dtype=bool)
 
+        # for i, action in enumerate(Actions):
+        #     if self._is_in_bounds(self._agent_location + self._action_to_direction[action]) \
+        #             and np.array_equal(
+        #                 self._v_tiles[
+        #                             self._agent_location[0] + self._action_to_direction[action][0],
+        #                             self._agent_location[1] + self._action_to_direction[action][1]
+        #                             ],
+        #                 (0, 0)) \
+        #             and not np.array_equal(
+        #                 self._last_direction,
+        #                 -self._action_to_direction[action]
+        #             ):
+        #         mask[i] = 1
+
         for i, action in enumerate(Actions):
-            if self._is_in_bounds(self._agent_location + self._action_to_direction[action]) \
-                    and np.array_equal(
-                        self._v_tiles[
-                                    self._agent_location[0] + self._action_to_direction[action][0],
-                                    self._agent_location[1] + self._action_to_direction[action][1]
-                                    ],
-                        (0, 0)) \
-                    and not np.array_equal(
+            if not np.array_equal(
                         self._last_direction,
                         -self._action_to_direction[action]
                     ):
@@ -225,60 +238,101 @@ class SnakeEnv(gym.Env):
         return np.all(coords >= 0) and np.all(coords < self.grid_size)
 
     def _get_obs(self, render_font=False):
+        obs_tmp = np.zeros(90, dtype=np.uint8)
         for x in range(self._v_tiles.shape[0]):
             for y in range(self._v_tiles.shape[1]):
                 if np.array_equal(self._v_tiles[x, y], (0, 0)):
                     self._obs_vec[x*self.grid_size[1] + y] = 0
+                    obs_tmp[x*9 + y] = 1
                 else:
                     self._obs_vec[x*self.grid_size[1] + y] = 1
+                    obs_tmp[x*9 + y] = 2
+        
+        if self._agent_location[0]*9 + self._agent_location[1] < 90:
+            obs_tmp[self._agent_location[0]*9 + self._agent_location[1]] = 3
+        if self._target_location[0]*9 + self._target_location[1] < 90:
+            obs_tmp[self._target_location[0]*9 + self._target_location[1]] = 4
+        
+        #_clipped_agent = np.clip(self._agent_location, np.zeros(2), np.array(self.grid_size) - 1)
+        #_clipped_target = np.clip(self._target_location, np.zeros(2), np.array(self.grid_size) - 1)
+
+        #obs_tmp[0] = _clipped_agent[0]
+        #obs_tmp[1] = _clipped_agent[1]
+        #obs_tmp[2] = _clipped_target[0]
+        #obs_tmp[3] = _clipped_target[1]
+
+        #up_distance = self._agent_location[1]
+        #down_distance = self.grid_size[1] - self._agent_location[1] - 1
+        #left_distance = self._agent_location[0]
+        #right_distance = self.grid_size[0] - self._agent_location[0] - 1        
+
+        # for x in range(1, self.grid_size[0] - 1):
+        #     if (self._agent_location[0] + x)*self.grid_size[1] + self._agent_location[1] < len(obs_tmp):
+        #         if obs_tmp[(self._agent_location[0] + x)*self.grid_size[1] + self._agent_location[1]] != 0:
+        #             right_distance = min(right_distance, x)
+        #     if (self._agent_location[0] - x)*self.grid_size[1] + self._agent_location[1] >= 0:
+        #         if obs_tmp[(self._agent_location[0] - x)*self.grid_size[1] + self._agent_location[1]] != 0:
+        #             left_distance = min(left_distance, x)
+        # for y in range(1, self.grid_size[1] - 1):
+        #     if self._agent_location[0]*self.grid_size[1] + self._agent_location[1] + y < len(obs_tmp):
+        #         if obs_tmp[self._agent_location[0]*self.grid_size[1] + self._agent_location[1] + y] != 0:
+        #             down_distance = min(down_distance, y)
+        #     if self._agent_location[0]*self.grid_size[1] + self._agent_location[1] - y >= 0:
+        #         if obs_tmp[self._agent_location[0]*self.grid_size[1] + self._agent_location[1] - y] != 0:
+        #             up_distance = min(up_distance, y)
+        # obs_tmp[4] = left_distance
+        # obs_tmp[5] = up_distance
+        # obs_tmp[6] = right_distance
+        # obs_tmp[7] = down_distance
 
         # make colors distinct in internal representation
-        canvas = pygame.Surface(self.window_size)
-        canvas.fill((0, 0, 0))
+        # canvas = pygame.Surface(self.window_size)
+        # canvas.fill((0, 0, 0))
 
-        cell_size = 3
-        pygame.draw.rect(
-            canvas,
-            (255, 255, 255),
-            pygame.Rect(
-                (0, 0),
-                (cell_size*self.grid_size[0], cell_size*self.grid_size[1]),
-            )
-        )
+        # cell_size = 2
+        # pygame.draw.rect(
+        #     canvas,
+        #     (255, 255, 255),
+        #     pygame.Rect(
+        #         (0, 0),
+        #         (cell_size*self.grid_size[0], cell_size*self.grid_size[1]),
+        #     )
+        # )
 
-        pygame.draw.rect(
-            canvas,
-            (255, 0, 0),
-            pygame.Rect(
-                self._target_location * cell_size,
-                (cell_size, cell_size),
-            )
-        )
+        # pygame.draw.rect(
+        #     canvas,
+        #     (255, 0, 0),
+        #     pygame.Rect(
+        #         self._target_location * cell_size,
+        #         (cell_size, cell_size),
+        #     )
+        # )
 
-        for i in range(self._v_tiles.shape[0]):
-            for j in range(self._v_tiles.shape[1]):
-                if not np.array_equal(self._v_tiles[i, j], (0, 0)):
-                    pygame.draw.rect(
-                        canvas,
-                        (0, 0, 255),
-                        pygame.Rect(
-                            np.array([i, j]) * cell_size,
-                            (cell_size, cell_size),
-                        )
-                    )
+        # for i in range(self._v_tiles.shape[0]):
+        #     for j in range(self._v_tiles.shape[1]):
+        #         if not np.array_equal(self._v_tiles[i, j], (0, 0)):
+        #             pygame.draw.rect(
+        #                 canvas,
+        #                 (0, 0, 255),
+        #                 pygame.Rect(
+        #                     np.array([i, j]) * cell_size,
+        #                     (cell_size, cell_size),
+        #                 )
+        #             )
 
-        pygame.draw.rect(
-            canvas,
-            (0, 255, 0),
-            pygame.Rect(
-                self._agent_location * cell_size,
-                (cell_size, cell_size),
-            )
-        )
+        # pygame.draw.rect(
+        #     canvas,
+        #     (0, 255, 0),
+        #     pygame.Rect(
+        #         self._agent_location * cell_size,
+        #         (cell_size, cell_size),
+        #     )
+        # )
 
-        return np.transpose(
-            np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
-        )
+        # return np.transpose(
+        #     np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2)
+        # )
+        return obs_tmp
 
     def _get_reward(self, terminated=False, direction=None):
         reward = 0
@@ -289,9 +343,23 @@ class SnakeEnv(gym.Env):
             reward -= 1
 
         if self._collected_target:
-            reward += 1 - self._ticks_since_last_collect/self._max_ticks_since_last_collect
+            reward += 1
+
+        if self._last_min_dist > np.linalg.norm(self._agent_location - self._target_location, ord=1):
+            reward += 0.1
 
         return reward
+        # reward = 0
+
+        # if terminated:
+        #     if self._ticks_since_last_collect > self._max_ticks_since_last_collect:
+        #         return -self._score*self._score/np.prod(self.grid_size) * 5
+        #     return -self._score*self._score/np.prod(self.grid_size)
+        
+        # if self._collected_target:
+        #     reward += self._score
+
+        # return reward
 
     def _get_info(self):
         return {

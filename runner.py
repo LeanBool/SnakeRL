@@ -57,8 +57,8 @@ class CurriculumLearningCallback(BaseCallback):
             print(
                 (
                     f"Finished stage {self._stage}"
-                    f"{'x'.join(map(str, self._curriculum_transitions[self._stage][1]))},"
-                    f"{self._curriculum_transitions[self._stage][0]}_{self._model_type} steps)."
+                    f" ({'x'.join(map(str, self._curriculum_transitions[self._stage][1]))},"
+                    f" {self._curriculum_transitions[self._stage][0]}_{self._model_type} steps)."
                 )
             )
             file_name = (
@@ -79,6 +79,8 @@ def get_model_filename(grid_size, model_type="MPPO"):
     found_file = False
     if os.path.exists("./model/"):
         for file in os.listdir("./model/"):
+            if file == "models_go_here":
+                continue
             gs_ = list(map(int, file.split("_")[0].split("x")))
             ts_ = int(file.split("_")[1])
             if ts_ >= timestep_start \
@@ -88,7 +90,7 @@ def get_model_filename(grid_size, model_type="MPPO"):
                 found_file = True
     if found_file:
         return (
-            f"/home/docker_user/model/"
+            f"./model/"
             f"{grid_size[0]}x{grid_size[1]}_{ts_start}_{model_type}"
         )
     return False
@@ -96,12 +98,14 @@ def get_model_filename(grid_size, model_type="MPPO"):
 
 if __name__ == "__main__":
     _curriculum_transitions = [  # number of steps to next stage, (grid_dims)
-            (int(1e6), (5, 4)),
-            (int(1e6), (6, 5)),
-            (int(1.5e6), (7, 6)),
-            (int(1.5e6), (8, 7)),
-            (int(2e6), (9, 8)),
-            (int(2e6), (10, 9)),
+            (int(5e5), (3, 9)),
+            (int(5e5), (4, 9)),
+            (int(5e5), (5, 9)),
+            (int(5e5), (6, 9)),
+            (int(5e5), (7, 9)),
+            (int(5e5), (8, 9)),
+            (int(5e5), (9, 9)),
+            (int(5e5), (10, 9)),
         ]
 
     tb_log_path = "/home/docker_user/logs/"
@@ -115,11 +119,11 @@ if __name__ == "__main__":
     window_size = (800, 600)
     testing_episode_count = int(1)
     training_timesteps = max([i[0] for i in _curriculum_transitions])
-    n_envs = 16
+    n_envs = 8
 
-    load_pretrained = False
+    load_pretrained = True
     model_type = "MPPO"
-    ent_coef = 0 # 0.001  # sb default is 0
+    ent_coef = 0.01  # sb default is 0
     learning_rate = 0.0003
     n_steps = 2048
     batch_size = 64
@@ -152,6 +156,14 @@ if __name__ == "__main__":
     )
 
     if load_pretrained:
+        env = make_vec_env(
+            env_id,
+            n_envs=n_envs,
+            env_kwargs=dict(
+                grid_size=grid_size,
+            ),
+            vec_env_cls=SubprocVecEnv,
+        )
         file_name = get_model_filename(grid_size)
         if file_name:
             model = MaskablePPO.load(
@@ -176,8 +188,16 @@ if __name__ == "__main__":
                   and set the grid size to (4, 4) in order to start curriculum training""")
             exit()
     else:
+        env = make_vec_env(
+            env_id,
+            n_envs=n_envs,
+            env_kwargs=dict(
+                grid_size=_curriculum_transitions[0][1],
+            ),
+            vec_env_cls=SubprocVecEnv,
+        )
         model = MaskablePPO(
-            "CnnPolicy",
+            "MlpPolicy",
             env,
             verbose=1,
             device=device,
@@ -233,7 +253,7 @@ if __name__ == "__main__":
                 device=device,
                 ent_coef=ent_coef,
                 tensorboard_log=tb_log_path,
-                learning_rate=learning_rate*stage,
+                learning_rate=learning_rate,
                 n_steps=n_steps,
                 batch_size=batch_size,
                 n_epochs=n_epochs,
@@ -247,7 +267,7 @@ if __name__ == "__main__":
                             device=device,
                             ent_coef=ent_coef,
                             tensorboard_log=tb_log_path,
-                            learning_rate=learning_rate*stage,
+                            learning_rate=learning_rate,
                             n_steps=n_steps,
                             batch_size=batch_size,
                             n_epochs=n_epochs,
